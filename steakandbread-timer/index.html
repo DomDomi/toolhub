@@ -1,0 +1,814 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Brot/Steak fertig? – Timer + Gargrad-Kurve (v2)</title>
+  <style>
+    :root{
+      --bg:#0b0f17; --card:#121a27; --text:#e9eef7; --muted:#9fb0c7; --accent:#4da3ff;
+      --border: rgba(255,255,255,.10);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    .wrap{max-width:1160px;margin:0 auto;padding:18px}
+    h1{font-size:1.5rem;margin:8px 0 4px}
+    .sub{color:var(--muted);margin:0 0 14px;line-height:1.35}
+    .grid{display:grid;grid-template-columns:430px 1fr;gap:14px;align-items:start}
+    @media (max-width: 1020px){ .grid{grid-template-columns:1fr;} }
+    .card{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px}
+    label{display:block;font-size:.92rem;margin:10px 0 6px;color:var(--muted)}
+    input,select,button{font:inherit}
+    input[type="number"], input[type="text"], select{
+      width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--border);
+      background:rgba(255,255,255,.04);color:var(--text)
+    }
+    input[type="range"]{width:100%}
+    .row{display:flex;gap:10px}
+    .row > *{flex:1}
+    .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    button{
+      padding:10px 12px;border-radius:12px;border:1px solid var(--border);
+      background:rgba(255,255,255,.06);color:var(--text);cursor:pointer
+    }
+    button.primary{border-color:rgba(77,163,255,.35);background:rgba(77,163,255,.16)}
+    button:disabled{opacity:.55;cursor:not-allowed}
+    .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--border);font-variant-numeric:tabular-nums}
+    .kpi{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .big{font-size:1.15rem;font-weight:800;margin:6px 0 2px}
+    .hint{color:var(--muted);margin:0;line-height:1.35}
+    canvas{width:100%!important;height:480px!important}
+    .small{color:var(--muted);font-size:.92rem;line-height:1.35;margin-top:10px}
+    details{margin-top:10px}
+    summary{cursor:pointer;color:var(--muted)}
+    .mono{font-variant-numeric:tabular-nums}
+    .warn{color:#ffd166}
+    .ok{color:#39d98a}
+  </style>
+</head>
+
+<body>
+<div class="wrap">
+  <h1>Wann ist mein Brot/Steak fertig? (v2)</h1>
+  <p class="sub">
+    Diese Version ist „realer“: Du kannst eine <b>gemessene Kerntemperatur</b> eintragen (Thermometer),
+    und die Live-Kurve wird dann <b>aus Messpunkten</b> gezeichnet. Zusätzlich gibt es einen <b>Wende-Hinweis</b> fürs Steak.
+    (Das Modell bleibt als Orientierung erhalten.)
+  </p>
+
+  <div class="grid">
+    <!-- Controls -->
+    <div class="card">
+      <label for="food">🍽️ Lebensmittel</label>
+      <select id="food">
+        <option value="steak" selected>Steak (Rind, ganze Stücke)</option>
+        <option value="bread">Brot (Laib/Brötchen)</option>
+      </select>
+
+      <label for="target">🎯 Ziel (Kerntemperatur)</label>
+      <select id="target"></select>
+
+      <div class="row">
+        <div>
+          <label for="t0">🌡️ Start-Kerntemp (°C)</label>
+          <input id="t0" type="number" min="0" max="40" step="0.5" value="6" />
+        </div>
+        <div>
+          <label for="tenv">🔥 Umgebung (°C)</label>
+          <input id="tenv" type="number" min="80" max="300" step="5" value="200" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label for="size">📏 Größe</label>
+          <select id="size"></select>
+        </div>
+        <div id="customSizeWrap" style="display:none">
+          <label id="customSizeLabel" for="customSize" style="margin-top:10px">Wert</label>
+          <input id="customSize" type="number" min="1" max="2500" step="1" value="750" />
+        </div>
+      </div>
+
+      <label for="method">🍳 Methode (für Modell & Hinweise)</label>
+      <select id="method">
+        <option value="pan" selected>Pfanne/Grill (direkt, schneller)</option>
+        <option value="oven">Ofen (indirekt, langsamer)</option>
+        <option value="sousvide">Niedrig/gleichmäßig (sehr langsam)</option>
+      </select>
+
+      <label for="carry">♨️ Carryover (°C) nach dem Herausnehmen</label>
+      <input id="carry" type="number" min="0" max="12" step="0.5" value="3" />
+
+      <label for="useMeasured">📌 Live-Kurve aus Messwerten?</label>
+      <select id="useMeasured">
+        <option value="yes" selected>Ja (Thermometer / Messpunkte)</option>
+        <option value="no">Nein (nur Modell-Live-Kurve)</option>
+      </select>
+
+      <div id="measureWrap">
+        <label for="measTemp">🌡️ Kerntemperatur jetzt (°C)</label>
+        <div class="row">
+          <input id="measTemp" type="number" min="0" max="110" step="0.5" value="40" />
+          <button id="addMeas" class="primary" type="button">➕ Messpunkt</button>
+        </div>
+        <div class="btns" style="margin-top:8px">
+          <button id="clearMeas" type="button">🧽 Messpunkte löschen</button>
+        </div>
+        <p class="small">
+          Tipp: Trage alle paar Minuten einen Wert ein. Die Live-Kurve wird dann aus deinen Messpunkten verbunden.
+        </p>
+      </div>
+
+      <details>
+        <summary>⚙️ Feintuning (optional)</summary>
+
+        <label for="speed">⏩ Modell-Geschwindigkeit</label>
+        <input id="speed" type="range" min="0.6" max="1.6" step="0.05" value="1.0" />
+        <div class="kpi">
+          <span class="pill">Faktor: <b id="speedVal" class="mono">1.00</b></span>
+          <span class="pill">Chart-Update: <b class="mono">10 FPS</b></span>
+        </div>
+
+        <div id="flipWrap">
+          <label for="flipMode">🔁 Wenden-Hinweis (nur Pfanne/Grill)</label>
+          <select id="flipMode">
+            <option value="often" selected>Oft wenden (alle 45 Sekunden)</option>
+            <option value="60">Alle 60 Sekunden wenden</option>
+            <option value="30">Alle 30 Sekunden wenden</option>
+            <option value="once">Nur 1× wenden (zur Hälfte)</option>
+            <option value="off">Aus</option>
+          </select>
+          <p class="small">
+            Viele bekommen gleichmäßigere Bräunung, wenn sie öfter wenden. Alternativ: klassisch 1× bei ~50%.
+          </p>
+        </div>
+      </details>
+
+      <div class="btns">
+        <button id="start" class="primary">▶️ Start</button>
+        <button id="pause" disabled>⏸️ Pause</button>
+        <button id="reset">↩️ Reset</button>
+      </div>
+
+      <div class="kpi">
+        <span class="pill">⏱️ <b id="sw" class="mono">00:00.0</b></span>
+        <span class="pill">📍 Status: <b id="status">—</b></span>
+        <span class="pill" id="flipPill" style="display:none">🔁 Wenden: <b id="flipHint">—</b></span>
+      </div>
+
+      <p class="small warn" id="safety"></p>
+    </div>
+
+    <!-- Chart -->
+    <div class="card">
+      <div class="big" id="headline">—</div>
+      <p class="hint" id="detail">—</p>
+      <canvas id="chart"></canvas>
+      <p class="small">
+        Farbbänder = Temperatur-Zonen • Blau = Modell (Soll) • Pink = Live • Gelbe Punkte = Messpunkte
+      </p>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+  // -----------------------------
+  // Target presets (°C)
+  // -----------------------------
+  const TARGETS = {
+    steak: [
+      { id:"bleu",   label:"Bleu (sehr rare) – ca. 46°C",  target:46, band:[43,49] },
+      { id:"rare",   label:"Rare – ca. 52°C",             target:52, band:[49,54] },
+      { id:"mrare",  label:"Medium Rare – ca. 56°C",      target:56, band:[54,57] },
+      { id:"medium", label:"Medium – ca. 60°C",           target:60, band:[57,63] },
+      { id:"mwell",  label:"Medium Well – ca. 66°C",      target:66, band:[63,68] },
+      { id:"well",   label:"Well Done – ca. 71°C",        target:71, band:[68,75] },
+      { id:"safe",   label:"USDA Safe-Temp – 63°C (+ Ruhezeit)", target:63, band:[63,66] },
+    ],
+    bread: [
+      { id:"roll",      label:"Brötchen fertig – ca. 93°C", target:93, band:[91,95] },
+      { id:"loaf190",   label:"Brot oft fertig – ca. 88°C", target:88, band:[86,90] },
+      { id:"lean205",   label:"Lean/kräftig – ca. 96°C",    target:96, band:[94,98] },
+      { id:"sourdough", label:"Sourdough 96–98°C",          target:97, band:[96,98] },
+    ]
+  };
+
+  function zonesForFood(food){
+    if (food === "steak"){
+      return [
+        { name:"Unter (roh)",  y0:0,  y1:43,  color:"rgba(77,163,255,0.10)" },
+        { name:"Bleu",         y0:43, y1:49,  color:"rgba(77,163,255,0.14)" },
+        { name:"Rare",         y0:49, y1:54,  color:"rgba(77,163,255,0.18)" },
+        { name:"Med Rare",     y0:54, y1:57,  color:"rgba(77,163,255,0.22)" },
+        { name:"Medium",       y0:57, y1:63,  color:"rgba(77,163,255,0.26)" },
+        { name:"Med Well",     y0:63, y1:68,  color:"rgba(77,163,255,0.30)" },
+        { name:"Well+",        y0:68, y1:90,  color:"rgba(77,163,255,0.34)" },
+      ];
+    }
+    return [
+      { name:"Unterbacken",       y0:0,  y1:86, color:"rgba(77,163,255,0.10)" },
+      { name:"Fertig (typ.)",     y0:86, y1:90, color:"rgba(77,163,255,0.20)" },
+      { name:"Sehr durch / lean", y0:90, y1:98, color:"rgba(77,163,255,0.28)" },
+      { name:"Sehr heiß",         y0:98, y1:110, color:"rgba(77,163,255,0.34)" },
+    ];
+  }
+
+  // -----------------------------
+  // Model: Newton-style heating
+  // -----------------------------
+  function kFromInputs({food, method, sizeValue, speedFactor}){
+    let k = 0.18;
+
+    if (food === "steak"){
+      const thickness = Math.max(1.0, sizeValue); // cm
+      k = 0.18 * (2.5*2.5) / (thickness*thickness);
+      if (method === "pan") k *= 1.25;
+      if (method === "oven") k *= 0.85;
+      if (method === "sousvide") k *= 0.35;
+    } else {
+      const w = Math.max(40, sizeValue); // g
+      k = 0.12 * Math.pow(120 / w, 2/3); // brötchen 120g reference
+      if (method === "oven") k *= 1.0;
+      if (method === "pan") k *= 0.7;
+      if (method === "sousvide") k *= 0.25;
+    }
+
+    return k * speedFactor;
+  }
+
+  function tempAtTimeMin({t0, tenv, k, tMin}){
+    return tenv - (tenv - t0) * Math.exp(-k * tMin);
+  }
+
+  function timeToTemp({t0, tenv, k, target}){
+    const num = (tenv - target);
+    const den = (tenv - t0);
+    if (den <= 0) return Infinity;
+    const r = num / den;
+    if (r <= 0) return 0;
+    if (r >= 1) return Infinity;
+    return -Math.log(r) / k;
+  }
+
+  function fmtTime(min){
+    const sec = Math.max(0, min*60);
+    const m = Math.floor(sec/60);
+    const s = Math.floor(sec%60);
+    return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+  }
+
+  // -----------------------------
+  // UI
+  // -----------------------------
+  const elFood = document.getElementById('food');
+  const elTarget = document.getElementById('target');
+  const elT0 = document.getElementById('t0');
+  const elTenv = document.getElementById('tenv');
+  const elSize = document.getElementById('size');
+  const elCustomWrap = document.getElementById('customSizeWrap');
+  const elCustomSize = document.getElementById('customSize');
+  const elCustomLabel = document.getElementById('customSizeLabel');
+  const elMethod = document.getElementById('method');
+  const elCarry = document.getElementById('carry');
+  const elUseMeasured = document.getElementById('useMeasured');
+
+  const elMeasureWrap = document.getElementById('measureWrap');
+  const elMeasTemp = document.getElementById('measTemp');
+  const btnAddMeas = document.getElementById('addMeas');
+  const btnClearMeas = document.getElementById('clearMeas');
+
+  const elSpeed = document.getElementById('speed');
+  const elSpeedVal = document.getElementById('speedVal');
+
+  const elFlipWrap = document.getElementById('flipWrap');
+  const elFlipMode = document.getElementById('flipMode');
+  const elFlipPill = document.getElementById('flipPill');
+  const elFlipHint = document.getElementById('flipHint');
+
+  const elHeadline = document.getElementById('headline');
+  const elDetail = document.getElementById('detail');
+  const elSafety = document.getElementById('safety');
+
+  const btnStart = document.getElementById('start');
+  const btnPause = document.getElementById('pause');
+  const btnReset = document.getElementById('reset');
+  const elSw = document.getElementById('sw');
+  const elStatus = document.getElementById('status');
+
+  function getSelectedTarget(food){
+    const list = TARGETS[food];
+    return list.find(x => x.id === elTarget.value) || list[0];
+  }
+
+  function addOpt(select, val, label){
+    const o = document.createElement('option');
+    o.value = val; o.textContent = label;
+    select.appendChild(o);
+  }
+
+  function setTargetOptions(){
+    const food = elFood.value;
+
+    elTarget.innerHTML = "";
+    for (const t of TARGETS[food]) addOpt(elTarget, t.id, t.label);
+    elTarget.value = (food === "steak") ? "mrare" : "loaf190";
+
+    elSize.innerHTML = "";
+    if (food === "steak"){
+      addOpt(elSize, "steak_2.5cm", "Steak ~2,5 cm dick");
+      addOpt(elSize, "steak_4cm", "Steak ~4,0 cm dick");
+      addOpt(elSize, "custom", "Benutzerdefiniert");
+      elSize.value = "steak_2.5cm";
+      elCustomLabel.textContent = "Dicke (cm)";
+      elCustomSize.min = "1";
+      elCustomSize.max = "10";
+      elCustomSize.step = "0.1";
+      elCustomSize.value = "2.5";
+
+      elTenv.value = "200";
+      elT0.value = "6";
+      elMethod.value = "pan";
+      elCarry.value = "3";
+
+      elFlipWrap.style.display = "block";
+      elSafety.textContent = "Hinweis: Für Sicherheit bei Rind-Steaks nennt die USDA 63°C (+ Ruhezeit). Garstufen darunter sind kulinarisch üblich, aber nicht für alle Risikogruppen geeignet.";
+    } else {
+      addOpt(elSize, "roll_80g", "Brötchen ~80 g");
+      addOpt(elSize, "roll_120g", "Brötchen ~120 g");
+      addOpt(elSize, "bread_500g", "Kleiner Laib ~500 g");
+      addOpt(elSize, "bread_750g", "Laib ~750 g");
+      addOpt(elSize, "bread_1000g", "Großer Laib ~1000 g");
+      addOpt(elSize, "custom", "Benutzerdefiniert");
+      elSize.value = "bread_750g";
+      elCustomLabel.textContent = "Gewicht (g)";
+      elCustomSize.min = "40";
+      elCustomSize.max = "2500";
+      elCustomSize.step = "10";
+      elCustomSize.value = "750";
+
+      elTenv.value = "220";
+      elT0.value = "24";
+      elMethod.value = "oven";
+      elCarry.value = "0";
+
+      elFlipWrap.style.display = "none";
+      elSafety.textContent = "Brot: Kerntemperatur ist ein guter Indikator (z.B. ~88°C für viele Brote, ~96–98°C bei Sourdough/lean), aber Kruste/Farbe zählen ebenfalls.";
+    }
+
+    syncCustomVisibility();
+    syncMeasuredVisibility();
+    clearMeasurements();
+    onInputsChanged();
+  }
+
+  function syncCustomVisibility(){
+    elCustomWrap.style.display = (elSize.value === "custom") ? "block" : "none";
+  }
+
+  function syncMeasuredVisibility(){
+    elMeasureWrap.style.display = (elUseMeasured.value === "yes") ? "block" : "none";
+  }
+
+  function sizeValueFromPreset(food){
+    const v = elSize.value;
+    if (v === "custom") return Math.max(1, Number(elCustomSize.value));
+    if (food === "steak"){
+      if (v === "steak_2.5cm") return 2.5;
+      if (v === "steak_4cm") return 4.0;
+      return 2.5;
+    }
+    // bread
+    if (v === "roll_80g") return 80;
+    if (v === "roll_120g") return 120;
+    if (v === "bread_500g") return 500;
+    if (v === "bread_750g") return 750;
+    if (v === "bread_1000g") return 1000;
+    return 750;
+  }
+
+  // -----------------------------
+  // Measurements (time, temp) for live curve
+  // -----------------------------
+  let measPoints = []; // {x: minutes, y: temp}
+
+  function addMeasurementPoint(min, temp){
+    if (!Number.isFinite(min) || !Number.isFinite(temp)) return;
+    measPoints.push({x:min, y:temp});
+    // sort & de-dup by time
+    measPoints.sort((a,b)=>a.x-b.x);
+    const dedup = [];
+    for (const p of measPoints){
+      if (!dedup.length || Math.abs(dedup[dedup.length-1].x - p.x) > 1e-6) dedup.push(p);
+      else dedup[dedup.length-1] = p; // replace same time
+    }
+    measPoints = dedup;
+  }
+
+  function clearMeasurements(){
+    measPoints = [];
+  }
+
+  // -----------------------------
+  // Bands plugin (stable)
+  // -----------------------------
+  const bandsPlugin = {
+    id: 'bands',
+    beforeDatasetsDraw(chart){
+      const zones = chart.options?.plugins?.bands?.zones;
+      if (!zones) return;
+      const { ctx, chartArea, scales } = chart;
+      if (!chartArea) return;
+      const y = scales.y;
+
+      ctx.save();
+      for (const z of zones){
+        const top = y.getPixelForValue(z.y1);
+        const bot = y.getPixelForValue(z.y0);
+        ctx.fillStyle = z.color;
+        ctx.fillRect(chartArea.left, top, chartArea.right-chartArea.left, bot-top);
+      }
+      ctx.restore();
+    }
+  };
+
+  const chart = new Chart(document.getElementById('chart'), {
+    type:'line',
+    data:{
+      datasets:[
+        { // model/soll
+          label:"Modell (Soll)",
+          data:[],
+          parsing:false,
+          borderWidth:2,
+          pointRadius:0,
+          tension:0.25,
+          borderColor:"rgba(77,163,255,0.95)"
+        },
+        { // live curve
+          label:"Live",
+          data:[],
+          parsing:false,
+          borderWidth:2,
+          pointRadius:0,
+          tension:0.25,
+          borderColor:"rgba(255,92,122,0.95)"
+        },
+        { // live point
+          label:"Live-Punkt",
+          data:[],
+          parsing:false,
+          showLine:false,
+          pointRadius:4,
+          borderWidth:0,
+          pointBackgroundColor:"rgba(255,92,122,0.95)"
+        },
+        { // measurement points
+          label:"Messpunkte",
+          data:[],
+          parsing:false,
+          showLine:false,
+          pointRadius:4,
+          borderWidth:0,
+          pointBackgroundColor:"rgba(255,209,102,0.95)" // yellow
+        }
+      ]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      animation:false,
+      plugins:{
+        legend:{ display:true, labels:{ color:"rgba(233,238,247,.9)" } },
+        tooltip:{
+          callbacks:{
+            title:(items)=> `Zeit: ${fmtTime(items?.[0]?.parsed?.x ?? 0)}`,
+            label:(item)=>{
+              const t = item.parsed.y;
+              return `${item.dataset.label}: ${t.toFixed(1)}°C`;
+            }
+          }
+        },
+        bands:{ zones:null }
+      },
+      scales:{
+        x:{
+          type:'linear',
+          title:{ display:true, text:'Zeit', color:"rgba(233,238,247,.9)" },
+          ticks:{ color:"rgba(159,176,199,.9)", callback:(v)=>fmtTime(v) },
+          grid:{ color:"rgba(255,255,255,.06)" },
+          min:0, max:30
+        },
+        y:{
+          title:{ display:true, text:'Kerntemperatur (°C)', color:"rgba(233,238,247,.9)" },
+          ticks:{ color:"rgba(159,176,199,.9)", callback:(v)=>`${v}°C` },
+          grid:{ color:"rgba(255,255,255,.06)" },
+          min:0, max:110
+        }
+      }
+    },
+    plugins:[bandsPlugin]
+  });
+
+  // Build model curve
+  function buildModelCurve({t0, tenv, k, maxX}){
+    const stepMin = 5/60; // 5 sec
+    const data = [];
+    for (let t=0; t<=maxX+1e-9; t += stepMin){
+      const temp = tempAtTimeMin({t0, tenv, k, tMin:t});
+      data.push({x:Number(t.toFixed(4)), y:Number(temp.toFixed(3))});
+    }
+    return data;
+  }
+
+  // Live curve mode:
+  // - measured: connect measurement points, optionally add current point if user hasn't measured at exactly now
+  // - model-live: truncate model curve at stopwatch time
+  function computeLive({useMeasured, modelCurve, stopwatchMin, t0, tenv, k}){
+    if (!Number.isFinite(stopwatchMin)) {
+      return { live: [], livePoint: [], liveTemp: NaN, meas: measPoints.slice() };
+    }
+
+    if (useMeasured){
+      const meas = measPoints.slice();
+      // Add a synthetic point at current time using model if there are no recent measurements,
+      // just to provide a moving live point:
+      let liveTemp = NaN;
+
+      if (meas.length){
+        // pick last measurement at/before now, else first
+        const before = meas.filter(p => p.x <= stopwatchMin);
+        liveTemp = before.length ? before[before.length-1].y : meas[0].y;
+      } else {
+        // no measurements -> fallback to model temp
+        liveTemp = tempAtTimeMin({t0, tenv, k, tMin: stopwatchMin});
+      }
+
+      // Live line: connect measurements up to now; if none, empty
+      const live = meas.filter(p => p.x <= stopwatchMin);
+      const livePoint = [{x: stopwatchMin, y: liveTemp}];
+
+      return { live, livePoint, liveTemp, meas };
+    }
+
+    // model-live
+    const live = [];
+    for (const pt of modelCurve){
+      if (pt.x <= stopwatchMin) live.push(pt);
+      else break;
+    }
+    const liveTemp = tempAtTimeMin({t0, tenv, k, tMin: stopwatchMin});
+    const livePoint = [{x: stopwatchMin, y: liveTemp}];
+    return { live, livePoint, liveTemp, meas: measPoints.slice() };
+  }
+
+  function flipHintText({food, method, flipMode, stopwatchSec, estTotalSec}){
+    if (food !== "steak" || method !== "pan" || flipMode === "off") return null;
+
+    // option: once at halfway
+    if (flipMode === "once"){
+      if (!Number.isFinite(estTotalSec) || estTotalSec <= 0) return "Wenden bei ~50% (Schätzung)";
+      const half = estTotalSec / 2;
+      const diff = half - stopwatchSec;
+      if (diff <= -10) return "Schon gewendet? (Ziel: einmal bei ~50%)";
+      if (diff <= 0) return "Jetzt wenden";
+      return `In ${fmtTime(diff/60)} wenden (50%)`;
+    }
+
+    const interval =
+      flipMode === "30" ? 30 :
+      flipMode === "60" ? 60 :
+      45; // often
+
+    const mod = stopwatchSec % interval;
+    const until = interval - mod;
+    if (until <= 1) return "Jetzt wenden";
+    return `In ${Math.round(until)}s wenden`;
+  }
+
+  function updateUI(stopwatchMin){
+    const food = elFood.value;
+    const targetObj = getSelectedTarget(food);
+
+    const t0 = Math.max(0, Number(elT0.value));
+    const tenv = Math.max(1, Number(elTenv.value));
+    const carry = Math.max(0, Number(elCarry.value));
+    const speedFactor = Number(elSpeed.value);
+    elSpeedVal.textContent = speedFactor.toFixed(2);
+
+    const sizeVal = sizeValueFromPreset(food);
+    const method = elMethod.value;
+    const useMeasured = (elUseMeasured.value === "yes");
+
+    // compute k and estimated reach time
+    const k = kFromInputs({food, method, sizeValue:sizeVal, speedFactor});
+    const pullTemp = (food === "steak") ? Math.max(0, targetObj.target - carry) : targetObj.target;
+    const tReach = timeToTemp({t0, tenv, k, target: pullTemp});
+
+    const maxX = Math.max(8, Math.min(180, (Number.isFinite(tReach) ? tReach*1.35 : 35)));
+    const modelCurve = buildModelCurve({t0, tenv, k, maxX});
+
+    // Y-range heuristics
+    const yMin = Math.max(0, Math.min(t0, targetObj.band?.[0] ?? targetObj.target) - 10);
+    const yMax = Math.min(140, Math.max(targetObj.target, tenv, (food==="bread"?110:90)) + 10);
+
+    chart.options.scales.x.max = maxX;
+    chart.options.scales.y.min = yMin;
+    chart.options.scales.y.max = yMax;
+
+    chart.options.plugins.bands.zones = zonesForFood(food);
+
+    // model curve always shown
+    chart.data.datasets[0].data = modelCurve;
+
+    // live curve & points
+    const live = computeLive({useMeasured, modelCurve, stopwatchMin, t0, tenv, k});
+    chart.data.datasets[1].data = live.live;
+    chart.data.datasets[2].data = live.livePoint;
+    chart.data.datasets[3].data = live.meas;
+
+    // Status text
+    if (!Number.isFinite(stopwatchMin)){
+      elStatus.textContent = "—";
+    } else {
+      const liveTemp = live.liveTemp;
+      const targetReached = liveTemp >= targetObj.target;
+      const pullReached = liveTemp >= pullTemp;
+
+      if (food === "steak"){
+        if (pullReached) elStatus.textContent = `Rausnehmen (Pull ${pullTemp.toFixed(1)}°C)`;
+        else elStatus.textContent = `Noch ${(pullTemp - liveTemp).toFixed(1)}°C bis Pull`;
+      } else {
+        if (targetReached) elStatus.textContent = "Ziel erreicht";
+        else elStatus.textContent = `Noch ${(targetObj.target - liveTemp).toFixed(1)}°C bis Ziel`;
+      }
+    }
+
+    // Flip hint
+    const stopwatchSec = Number.isFinite(stopwatchMin) ? stopwatchMin*60 : 0;
+    const estTotalSec = Number.isFinite(tReach) ? tReach*60 : NaN;
+    const flipText = flipHintText({
+      food, method, flipMode: elFlipMode.value,
+      stopwatchSec, estTotalSec
+    });
+
+    if (flipText && Number.isFinite(stopwatchMin)){
+      elFlipPill.style.display = "inline-block";
+      elFlipHint.textContent = flipText;
+    } else {
+      elFlipPill.style.display = "none";
+      elFlipHint.textContent = "—";
+    }
+
+    // Headline/detail
+    const targetText = `${targetObj.target.toFixed(0)}°C`;
+    const pullText = (food==="steak")
+      ? `• Pull: ${pullTemp.toFixed(0)}°C`
+      : "";
+
+    const estText = (Number.isFinite(tReach) && tReach < 1e6)
+      ? `• grob nach ~${fmtTime(tReach)}`
+      : "• Zeit schwer schätzbar";
+
+    const sizeText = (food==="steak") ? `${sizeVal.toFixed(1)} cm` : `${Math.round(sizeVal)} g`;
+    const liveModeText = useMeasured ? "Live aus Messpunkten" : "Live aus Modell";
+
+    elHeadline.textContent = `${food==="steak" ? "Steak" : "Brot"} – Ziel: ${targetText} ${pullText} ${estText}`;
+    elDetail.textContent =
+      `Start ${t0.toFixed(1)}°C → Umgebung ${tenv.toFixed(0)}°C • Methode: ${method} • Größe: ${sizeText} • ${liveModeText} • k=${k.toFixed(3)}/min`;
+
+    chart.update('none');
+  }
+
+  // -----------------------------
+  // Stopwatch (throttled chart updates)
+  // -----------------------------
+  let running = false;
+  let startTs = 0;
+  let elapsedMs = 0;
+  let rafId = null;
+  let lastChartUpdate = 0;
+  const CHART_FPS = 10;
+
+  function renderStopwatch(){
+    const ms = elapsedMs + (running ? (performance.now() - startTs) : 0);
+    const totalSec = ms / 1000;
+
+    const m = Math.floor(totalSec / 60);
+    const s = Math.floor(totalSec % 60);
+    const tenths = Math.floor((totalSec - Math.floor(totalSec)) * 10);
+    elSw.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${tenths}`;
+
+    const now = performance.now();
+    if (now - lastChartUpdate >= (1000 / CHART_FPS)) {
+      lastChartUpdate = now;
+      updateUI(totalSec / 60);
+    }
+
+    rafId = requestAnimationFrame(renderStopwatch);
+  }
+
+  function start(){
+    if (running) return;
+    running = true;
+    startTs = performance.now();
+    btnStart.disabled = true;
+    btnPause.disabled = false;
+    lastChartUpdate = 0;
+    rafId = requestAnimationFrame(renderStopwatch);
+  }
+  function pause(){
+    if (!running) return;
+    running = false;
+    elapsedMs += performance.now() - startTs;
+    btnStart.disabled = false;
+    btnPause.disabled = true;
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = null;
+    updateUI((elapsedMs/1000)/60);
+  }
+  function reset(){
+    running = false;
+    elapsedMs = 0;
+    btnStart.disabled = false;
+    btnPause.disabled = true;
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = null;
+    elSw.textContent = "00:00.0";
+    updateUI(null);
+  }
+
+  // -----------------------------
+  // Events
+  // -----------------------------
+  function onInputsChanged(){
+    if (running) return;
+    updateUI(null);
+  }
+
+  function clearMeasurements(){
+    measPoints = [];
+    chart.data.datasets[3].data = [];
+  }
+
+  btnAddMeas.addEventListener('click', () => {
+    // attach measurement at current stopwatch time (or 0 if not running)
+    const min = (elapsedMs + (running ? (performance.now() - startTs) : 0)) / 1000 / 60;
+    const temp = Number(elMeasTemp.value);
+    addMeasurementPoint(min, temp);
+    if (!running) updateUI(null);
+    else updateUI(min);
+  });
+
+  btnClearMeas.addEventListener('click', () => {
+    clearMeasurements();
+    onInputsChanged();
+  });
+
+  elFood.addEventListener('change', () => {
+    reset();
+    clearMeasurements();
+    setTargetOptions();
+  });
+
+  elSize.addEventListener('change', () => {
+    syncCustomVisibility();
+    onInputsChanged();
+  });
+
+  elUseMeasured.addEventListener('change', () => {
+    syncMeasuredVisibility();
+    onInputsChanged();
+  });
+
+  elMethod.addEventListener('change', () => {
+    // flip hint only for steak+pan
+    onInputsChanged();
+  });
+
+  function syncCustomVisibility(){
+    elCustomWrap.style.display = (elSize.value === "custom") ? "block" : "none";
+    elCustomLabel.textContent = (elFood.value === "steak") ? "Dicke (cm)" : "Gewicht (g)";
+  }
+
+  function syncMeasuredVisibility(){
+    elMeasureWrap.style.display = (elUseMeasured.value === "yes") ? "block" : "none";
+  }
+
+  [elTarget, elT0, elTenv, elCustomSize, elCarry, elSpeed, elFlipMode].forEach(el => {
+    el.addEventListener('input', onInputsChanged);
+    el.addEventListener('change', onInputsChanged);
+  });
+
+  btnStart.addEventListener('click', start);
+  btnPause.addEventListener('click', pause);
+  btnReset.addEventListener('click', reset);
+
+  // Init
+  setTargetOptions();
+  syncMeasuredVisibility();
+  updateUI(null);
+</script>
+</body>
+</html>

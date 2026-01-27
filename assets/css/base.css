@@ -1,0 +1,19 @@
+:root{
+  --bg:#0b0f17; --card:#121a27; --text:#e9eef7; --muted:#9fb0c7;
+  --border: rgba(255,255,255,.10); --accent:#4da3ff;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+a{color:var(--muted)}
+.wrap{max-width:1100px;margin:0 auto;padding:18px}
+.card{
+  background:var(--card);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:16px;
+  padding:14px;
+}

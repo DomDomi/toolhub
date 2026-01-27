@@ -1,0 +1,10 @@
+Version 1
+Grundlegende funktionen
+
+
+Version 2
+Messmodus: „Live aus Messpunkten“ → du kannst Kerntemperaturen eintragen, und die Live-Kurve basiert darauf (nicht nur auf dem Modell).
+
+Brot-Presets erweitert: Brötchen (80/120g) + kleine/mittlere/große Laibe.
+
+Steak wenden: Bei Steak + Pfanne/Grill bekommst du einen Wende-Countdown (Standard: alle 45s), alternativ 30s/60s oder „nur 1× zur Hälfte“.

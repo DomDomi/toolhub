@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Abo-Kosten-Kurve</title>
+  <style>
+    :root { --bg:#0b0f17; --card:#121a27; --text:#e9eef7; --muted:#9fb0c7; --accent:#4da3ff; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:var(--bg); color:var(--text); }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 20px; }
+    h1 { font-size: 1.6rem; margin: 10px 0 6px; }
+    .sub { color: var(--muted); margin: 0 0 16px; }
+    .grid { display:grid; grid-template-columns: 320px 1fr; gap: 14px; }
+    @media (max-width: 860px){ .grid{ grid-template-columns: 1fr; } }
+    .card { background: var(--card); border: 1px solid rgba(255,255,255,.08); border-radius: 16px; padding: 14px; }
+    label { display:block; font-size: .95rem; margin: 12px 0 6px; color: var(--muted); }
+    input[type="number"]{
+      width: 100%; padding: 10px 12px; border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.04); color: var(--text);
+      font-size: 1rem;
+    }
+    .row { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .pill { font-variant-numeric: tabular-nums; padding: 6px 10px; border-radius: 999px; background: rgba(77,163,255,.12); border:1px solid rgba(77,163,255,.25); }
+    input[type="range"]{ width: 100%; }
+    .big { font-size: 1.4rem; margin: 10px 0 2px; font-weight: 700; }
+    .hint { color: var(--muted); font-size: .95rem; margin: 0; }
+    canvas { width:100% !important; height: 360px !important; }
+    .mini { margin-top: 10px; color: var(--muted); font-size: .95rem; }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <h1>So wächst dein Abo über die Zeit</h1>
+    <p class="sub">Nicht pro Monat. Sondern wirklich. (Live aktualisiert)</p>
+
+    <div class="grid">
+      <!-- Inputs -->
+      <div class="card">
+        <label for="price">💶 Monatspreis (€)</label>
+        <input id="price" type="number" inputmode="decimal" step="0.01" min="0" value="9.99" />
+
+        <div class="row" style="margin-top:12px;">
+          <label for="years" style="margin:0;">⏱️ Laufzeit (Jahre)</label>
+          <span class="pill"><span id="yearsVal">5</span> Jahre</span>
+        </div>
+        <input id="years" type="range" min="1" max="10" step="1" value="5" />
+
+        <label for="increase">📈 Preiserhöhung pro Jahr (%)</label>
+        <input id="increase" type="number" inputmode="decimal" step="0.1" value="0" />
+
+        <p class="mini">
+          Tipp: Setz z.B. <strong>5%</strong>, um typische Preisanhebungen zu simulieren.
+        </p>
+      </div>
+
+      <!-- Chart + Result -->
+      <div class="card">
+        <div class="big" id="headlineResult">Nach 5 Jahren: 0 €</div>
+        <p class="hint" id="detailResult">Ø 0 €/Monat • 0 €/Jahr</p>
+        <div style="margin-top:10px;">
+          <canvas id="chart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart.js via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script>
+    const elPrice = document.getElementById('price');
+    const elYears = document.getElementById('years');
+    const elYearsVal = document.getElementById('yearsVal');
+    const elIncrease = document.getElementById('increase');
+
+    const elHeadline = document.getElementById('headlineResult');
+    const elDetail = document.getElementById('detailResult');
+
+    // Euro formatter (DE)
+    const eur = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' });
+
+    // Compute cumulative cost per year with optional yearly increase (compounded yearly)
+    // Assumption: Price increase applies at the start of each new year.
+    function computeSeries(monthlyPrice, years, yearlyIncreasePct) {
+      const labels = [];
+      const data = [];
+
+      let total = 0;
+      let currentMonthly = monthlyPrice;
+      const r = (yearlyIncreasePct || 0) / 100;
+
+      for (let y = 1; y <= years; y++) {
+        // Pay 12 months at currentMonthly
+        total += currentMonthly * 12;
+
+        labels.push(String(y));
+        data.push(Number(total.toFixed(2)));
+
+        // Apply increase for next year
+        currentMonthly = currentMonthly * (1 + r);
+      }
+
+      return { labels, data, total };
+    }
+
+    // Create chart
+    const ctx = document.getElementById('chart');
+    const chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'Gesamtkosten',
+          data: [],
+          tension: 0.25,
+          borderWidth: 2,
+          pointRadius: 3
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (item) => ` ${eur.format(item.parsed.y)}`
+            }
+          }
+        },
+        scales: {
+          x: { title: { display: true, text: 'Jahre' } },
+          y: {
+            title: { display: true, text: 'Gesamtkosten' },
+            ticks: {
+              callback: (v) => eur.format(v)
+            }
+          }
+        }
+      }
+    });
+
+    function clampNumber(n, fallback=0) {
+      const x = Number(n);
+      return Number.isFinite(x) ? x : fallback;
+    }
+
+    function update() {
+      const monthly = Math.max(0, clampNumber(elPrice.value, 0));
+      const years = clampNumber(elYears.value, 5);
+      const inc = clampNumber(elIncrease.value, 0);
+
+      elYearsVal.textContent = years;
+
+      const { labels, data, total } = computeSeries(monthly, years, inc);
+
+      chart.data.labels = labels;
+      chart.data.datasets[0].data = data;
+      chart.update();
+
+      const avgPerMonth = years > 0 ? total / (years * 12) : 0;
+      const perYear = years > 0 ? total / years : 0;
+
+      elHeadline.textContent = `Nach ${years} Jahren: ${eur.format(total)}`;
+      elDetail.textContent = `Ø ${eur.format(avgPerMonth)}/Monat • ${eur.format(perYear)}/Jahr`;
+    }
+
+    // Live update on input
+    [elPrice, elYears, elIncrease].forEach(el => {
+      el.addEventListener('input', update);
+      el.addEventListener('change', update);
+    });
+
+    update();
+  </script>
+</body>
+</html>

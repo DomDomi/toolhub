@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ei-Rechner (Konsistenz-Kurve + Live-Stoppuhr + Höhe)</title>
+  <style>
+    :root{
+      --bg:#0b0f17; --card:#121a27; --text:#e9eef7; --muted:#9fb0c7; --accent:#4da3ff;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    .wrap{max-width:1120px;margin:0 auto;padding:18px}
+    h1{font-size:1.5rem;margin:8px 0 4px}
+    .sub{color:var(--muted);margin:0 0 14px;line-height:1.35}
+    .grid{display:grid;grid-template-columns:380px 1fr;gap:14px;align-items:start}
+    @media (max-width: 980px){ .grid{grid-template-columns:1fr;} }
+    .card{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px}
+    label{display:block;font-size:.92rem;margin:10px 0 6px;color:var(--muted)}
+    input,select,button{font:inherit}
+    input[type="number"], select{
+      width:100%;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.04);color:var(--text)
+    }
+    .row{display:flex;gap:10px}
+    .row > *{flex:1}
+    .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(77,163,255,.12);border:1px solid rgba(77,163,255,.25);font-variant-numeric:tabular-nums}
+    .kpi{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .kpi .pill{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.12)}
+    .btns{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap}
+    button{
+      padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.06);color:var(--text);cursor:pointer
+    }
+    button.primary{border-color:rgba(77,163,255,.35);background:rgba(77,163,255,.16)}
+    button:disabled{opacity:.55;cursor:not-allowed}
+    .big{font-size:1.25rem;font-weight:750;margin:6px 0 2px}
+    .hint{color:var(--muted);margin:0;line-height:1.35}
+    canvas{width:100%!important;height:440px!important}
+    .small{font-size:.9rem;color:var(--muted);line-height:1.35;margin-top:10px}
+    details{margin-top:10px}
+    summary{cursor:pointer;color:var(--muted)}
+    .mono{font-variant-numeric:tabular-nums}
+  </style>
+</head>
+
+<body>
+<div class="wrap">
+  <h1>Ei-Rechner: Konsistenz-Kurve + Live-Stoppuhr + Höhe über NN</h1>
+  <p class="sub">
+    Du bekommst eine <b>grafische Gargrad-Kurve</b> (Soll) und eine <b>Live-Kurve</b> (Stoppuhr).
+    Zusätzlich berücksichtigen wir <b>Ei-Temperatur</b> (kühlschrankkalt / zimmerwarm / warm) und <b>Höhe über NN</b> (Siedepunkt sinkt).
+  </p>
+
+  <div class="grid">
+    <!-- Inputs -->
+    <div class="card">
+      <label for="size">🥚 Größe (Preset)</label>
+      <select id="size">
+        <option value="custom">Benutzerdefiniert</option>
+        <option value="S">S (unter 53 g)</option>
+        <option value="M" selected>M (53–63 g)</option>
+        <option value="L">L (63–73 g)</option>
+        <option value="XL">XL (ab 73 g)</option>
+        <option value="XS">XS / Peewee (ca. 40–45 g)</option>
+        <option value="XXL">XXL / Jumbo (ca. 80 g)</option>
+      </select>
+
+      <div class="row">
+        <div>
+          <label for="weight">⚖️ Gewicht (g)</label>
+          <input id="weight" type="number" min="30" max="120" step="0.1" value="58" />
+        </div>
+        <div>
+          <label for="diameter">📏 Durchmesser (mm, optional)</label>
+          <input id="diameter" type="number" min="35" max="70" step="0.1" placeholder="z. B. 44" />
+        </div>
+      </div>
+
+      <label for="eggTempMode">🌡️ Ei-Temperatur</label>
+      <div class="row">
+        <select id="eggTempMode">
+          <option value="fridge" selected>Kühlschrankkalt (~4°C)</option>
+          <option value="room">Zimmertemperatur (~20°C)</option>
+          <option value="warm">Frisch vom Huhn / warm (~35°C)</option>
+          <option value="custom">Benutzerdefiniert</option>
+        </select>
+        <div id="eggTempCustomWrap" style="display:none">
+          <label for="eggTempCustom" style="margin-top:0">°C</label>
+          <input id="eggTempCustom" type="number" min="0" max="45" step="1" value="4" />
+        </div>
+      </div>
+
+      <label for="altitude">⛰️ Höhe über NN (m)</label>
+      <input id="altitude" type="number" min="0" max="4000" step="10" value="0" />
+
+      <label for="method">🍲 Startmethode</label>
+      <select id="method">
+        <option value="boil" selected>In kochendes Wasser legen (Standard)</option>
+        <option value="coldstart">Kaltstart: Ei ins Wasser, dann erst aufkochen</option>
+      </select>
+
+      <details>
+        <summary>⚙️ Konsistenz-Ziele (für M-Ei als Basis) anpassen</summary>
+        <div class="small">
+          Defaults entsprechen deinem Beispiel für ein <b>M</b>-Ei:
+          sehr weich 4:00 • weich 5:00 • wachsweich 6:30 • halbhart 8:30 • hart 10:30
+        </div>
+        <div class="row">
+          <div><label>Sehr weich (min)</label><input id="t1" type="number" step="0.1" value="4.0"></div>
+          <div><label>Weich (min)</label><input id="t2" type="number" step="0.1" value="5.0"></div>
+        </div>
+        <div class="row">
+          <div><label>Wachsweich (min)</label><input id="t3" type="number" step="0.1" value="6.5"></div>
+          <div><label>Halbhart (min)</label><input id="t4" type="number" step="0.1" value="8.5"></div>
+        </div>
+        <div><label>Hart (min)</label><input id="t5" type="number" step="0.1" value="10.5"></div>
+      </details>
+
+      <div class="btns">
+        <button id="start" class="primary">▶️ Start</button>
+        <button id="pause" disabled>⏸️ Pause</button>
+        <button id="reset">↩️ Reset</button>
+      </div>
+
+      <div class="kpi">
+        <span class="pill">⏱️ Stoppuhr: <b id="sw" class="mono">00:00.0</b></span>
+        <span class="pill">🍳 Aktuell: <b id="stageNow">—</b></span>
+        <span class="pill">🌡️ Siedepunkt: <b id="boilPt" class="mono">100.0°C</b></span>
+      </div>
+
+      <p class="small">
+        Hinweis: Das ist ein <b>Modell</b> (Topf, Wassermenge, Ei-Form etc. beeinflussen).
+        Es ist aber extrem praktisch, weil du <b>live siehst</b>, wo du gerade stehst.
+      </p>
+    </div>
+
+    <!-- Chart -->
+    <div class="card">
+      <div class="big" id="headline">Gargrad-Kurve (Soll) + Live-Kurve (Stoppuhr)</div>
+      <p class="hint" id="detail">
+        Die farbigen Bereiche markieren die Konsistenz-Zonen. Die Live-Kurve aktualisiert sich beim Laufen der Stoppuhr.
+      </p>
+      <canvas id="chart"></canvas>
+      <p class="small">
+        Tipp: Stell „Kaltstart“ ein, wenn du das Ei direkt ins Wasser legst und dann erst aufkochst.
+      </p>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+  // ---------------------------
+  // Presets (Gewicht repräsentativ)
+  // ---------------------------
+  const SIZE_TO_WEIGHT = { XS:44, S:50, M:58, L:68, XL:75, XXL:80 };
+
+  // ---------------------------
+  // Baseline & Faktoren
+  // Baseline: deine M-Zeiten für ~58g, Kühlschrank (4°C), Meereshöhe, "ins kochende Wasser"
+  // Skalierung: mass ~ (m/m0)^(2/3), optional diameter ~ (d/d0)^2
+  // Ei-Temperatur: Kühlschrank/Room/Warm via Faktor (piecewise linear)
+  // Höhe: Siedepunkt sinkt -> pauschaler Zeitfaktor pro °C unter 100°C
+  // Kaltstart: zusätzliche "Aufkoch"-Zeitkomponente (vereinfachtes Modell)
+  // ---------------------------
+  const M0 = 58;      // g
+  const D0 = 44;      // mm typisch
+  const BASE_BOIL_C = 100;
+
+  // Ei-Temp Faktoren:
+  // 4°C -> 1.00, 20°C -> ~0.78 (bekanntes Praxisverhältnis), 35°C -> ~0.70 (warm -> noch schneller)
+  function eggTempFactor(tempC){
+    const t = Math.max(0, Math.min(45, tempC));
+    if (t <= 4) return 1.00;
+    if (t <= 20){
+      const a = (t - 4) / (20 - 4);
+      return 1.00 + a * (0.78 - 1.00);
+    }
+    // 20..35
+    if (t <= 35){
+      const a = (t - 20) / (35 - 20);
+      return 0.78 + a * (0.70 - 0.78);
+    }
+    // 35..45: flacht ab
+    const a = (t - 35) / (45 - 35);
+    return 0.70 + a * (0.66 - 0.70);
+  }
+
+  function massFactor(m){ return Math.pow(m / M0, 2/3); }
+  function diameterFactor(dmm){
+    if (!Number.isFinite(dmm) || dmm <= 0) return 1.0;
+    return Math.pow(dmm / D0, 2);
+  }
+
+  // Siedepunkt-Approx: 1°C weniger pro ~285 m (grob, aber brauchbar)
+  function boilingPointC(altM){
+    const a = Math.max(0, altM);
+    return Math.max(80, BASE_BOIL_C - (a / 285));
+  }
+
+  // Zeitfaktor pro °C unter 100: +3% pro °C (vereinfachtes Modell, leicht nachvollziehbar)
+  function altitudeCookFactor(altM){
+    const bp = boilingPointC(altM);
+    const delta = BASE_BOIL_C - bp; // °C
+    return 1 + delta * 0.03;
+  }
+
+  // Kaltstart-Zusatzzeit: Wasser muss erst von (angenommen) ~20°C (room) auf Siedepunkt.
+  // Wir modellieren das als zusätzliche konstante Zeit (Minuten), skaliert mit Höhe (niedrigerer BP -> etwas kürzer zum Erhitzen),
+  // ABER: in der Praxis hängt es stark vom Herd/Topf ab. Daher bewusst "einfach & brauchbar".
+  function coldStartExtraMinutes(altM){
+    const bp = boilingPointC(altM);
+    // Bei 100°C: z.B. +3.0 min. Bei 93°C (≈2000m): etwas weniger, z.B. +2.4 min.
+    const deltaToHeat = bp - 20;
+    // Normierung: 80°C Delta -> 3.0 min, 73°C Delta -> ~2.7 min
+    return Math.max(1.5, 3.0 * (deltaToHeat / 80));
+  }
+
+  // ---------------------------
+  // Stages (Labels)
+  // ---------------------------
+  const STAGE_INFO = [
+    { label:"Zu roh", from:0,   to:20 },
+    { label:"Sehr weich", from:20, to:40 },
+    { label:"Weich / Frühstücksei", from:40, to:60 },
+    { label:"Wachsweich / Kernweich", from:60, to:80 },
+    { label:"Fest / Halbhart", from:80, to:100 },
+    { label:"Hart", from:100, to:110 }
+  ];
+
+  function stageFromPercent(p){
+    if (p < 20) return "Noch nicht (zu roh)";
+    if (p < 40) return "Sehr weich";
+    if (p < 60) return "Weich / Frühstücksei";
+    if (p < 80) return "Wachsweich / Kernweich";
+    if (p < 100) return "Fest / Halbhart";
+    return "Hart";
+  }
+
+  // ---------------------------
+  // UI
+  // ---------------------------
+  const elSize = document.getElementById('size');
+  const elWeight = document.getElementById('weight');
+  const elDiameter = document.getElementById('diameter');
+  const elEggTempMode = document.getElementById('eggTempMode');
+  const elEggTempCustomWrap = document.getElementById('eggTempCustomWrap');
+  const elEggTempCustom = document.getElementById('eggTempCustom');
+  const elAltitude = document.getElementById('altitude');
+  const elMethod = document.getElementById('method');
+
+  const elT1 = document.getElementById('t1');
+  const elT2 = document.getElementById('t2');
+  const elT3 = document.getElementById('t3');
+  const elT4 = document.getElementById('t4');
+  const elT5 = document.getElementById('t5');
+
+  const elHeadline = document.getElementById('headline');
+  const elStageNow = document.getElementById('stageNow');
+  const elBoilPt = document.getElementById('boilPt');
+
+  const btnStart = document.getElementById('start');
+  const btnPause = document.getElementById('pause');
+  const btnReset = document.getElementById('reset');
+  const elSw = document.getElementById('sw');
+
+  function n(x, fallback=0){
+    const v = Number(x);
+    return Number.isFinite(v) ? v : fallback;
+  }
+
+  function getEggTempC(){
+    const mode = elEggTempMode.value;
+    if (mode === "fridge") return 4;
+    if (mode === "room") return 20;
+    if (mode === "warm") return 35;
+    return n(elEggTempCustom.value, 4);
+  }
+
+  function getBaseTimesMinutes(){
+    const t1 = Math.max(0, n(elT1.value, 4.0));
+    const t2 = Math.max(t1, n(elT2.value, 5.0));
+    const t3 = Math.max(t2, n(elT3.value, 6.5));
+    const t4 = Math.max(t3, n(elT4.value, 8.5));
+    const t5 = Math.max(t4, n(elT5.value, 10.5));
+    return [t1, t2, t3, t4, t5];
+  }
+
+  function computeThresholds(){
+    const size = elSize.value;
+    let weight = n(elWeight.value, 58);
+    if (size !== "custom" && SIZE_TO_WEIGHT[size]) weight = SIZE_TO_WEIGHT[size];
+    elWeight.value = weight;
+
+    const diameterMm = elDiameter.value.trim() === "" ? NaN : n(elDiameter.value, NaN);
+    const eggTempC = getEggTempC();
+    const altM = Math.max(0, n(elAltitude.value, 0));
+    const method = elMethod.value;
+
+    const base = getBaseTimesMinutes();
+
+    // core factor
+    const factor =
+      massFactor(weight) *
+      diameterFactor(diameterMm) *
+      eggTempFactor(eggTempC) *
+      altitudeCookFactor(altM);
+
+    let thresholds = base.map(t => t * factor);
+
+    // Coldstart: add extra minutes (simple component) because "timer starts now" includes heating period
+    if (method === "coldstart") {
+      const extra = coldStartExtraMinutes(altM);
+      thresholds = thresholds.map(t => t + extra);
+    }
+
+    const bp = boilingPointC(altM);
+    elBoilPt.textContent = bp.toFixed(1) + "°C";
+
+    return { thresholds, weight, diameterMm, eggTempC, altM, method, bp };
+  }
+
+  // ---------------------------
+  // Build Gargrad curve (0..100)
+  // We map thresholds to percent points:
+  // t1->20, t2->40, t3->60, t4->80, t5->100
+  // then piecewise linear between them.
+  // ---------------------------
+  function gargradAtTime(min, thresholds){
+    const [t1,t2,t3,t4,t5] = thresholds;
+    const pts = [
+      {t:0,  p:0},
+      {t:t1, p:20},
+      {t:t2, p:40},
+      {t:t3, p:60},
+      {t:t4, p:80},
+      {t:t5, p:100},
+    ];
+
+    if (min <= 0) return 0;
+    if (min >= t5) return 110; // "über 100" = sehr hart, aber capped later
+
+    for (let i=0; i<pts.length-1; i++){
+      const a = pts[i], b = pts[i+1];
+      if (min >= a.t && min <= b.t){
+        const span = (b.t - a.t) || 1e-9;
+        const x = (min - a.t) / span;
+        return a.p + x * (b.p - a.p);
+      }
+    }
+    return 0;
+  }
+
+  function buildCurveData(maxMin, thresholds, stepSec=5){
+    const data = [];
+    const stepMin = stepSec / 60;
+    for (let t=0; t<=maxMin + 1e-9; t += stepMin){
+      const p = gargradAtTime(t, thresholds);
+      data.push({x: Number(t.toFixed(4)), y: Math.min(110, Math.max(0, p))});
+    }
+    return data;
+  }
+
+  // ---------------------------
+  // Chart background regions (stage zones)
+  // ---------------------------
+  const STAGE_ZONES = [
+    { name:"Sehr weich",        fromKey:0, toKey:1, color:"rgba(77,163,255,0.14)" },
+    { name:"Weich",             fromKey:1, toKey:2, color:"rgba(77,163,255,0.18)" },
+    { name:"Wachsweich",        fromKey:2, toKey:3, color:"rgba(77,163,255,0.22)" },
+    { name:"Halbhart",          fromKey:3, toKey:4, color:"rgba(77,163,255,0.26)" },
+    { name:"Hart",              fromKey:4, toKey:5, color:"rgba(77,163,255,0.30)" },
+  ];
+
+  const stageRegionsPlugin = {
+    id: 'stageRegions',
+    beforeDatasetsDraw(chart, args, pluginOptions){
+      const {ctx, chartArea, scales} = chart;
+      if (!chartArea) return;
+      const x = scales.x;
+      const thresholds = pluginOptions.thresholds;
+      if (!thresholds) return;
+
+      const [t1,t2,t3,t4,t5] = thresholds;
+      const edges = [t1,t2,t3,t4,t5, x.max];
+
+      ctx.save();
+      // fill regions by x ranges
+      for (let i=0; i<STAGE_ZONES.length; i++){
+        const left = x.getPixelForValue(edges[i]);
+        const right = x.getPixelForValue(edges[i+1]);
+        ctx.fillStyle = STAGE_ZONES[i].color;
+        ctx.fillRect(left, chartArea.top, right-left, chartArea.bottom - chartArea.top);
+      }
+      ctx.restore();
+    }
+  };
+
+  // ---------------------------
+  // Init Chart
+  // ---------------------------
+  const ctx = document.getElementById('chart');
+
+  const chart = new Chart(ctx, {
+    type: 'line',
+    data: { datasets: [
+      {
+        label: "Soll-Kurve (Gargrad)",
+        data: [],
+        parsing: false,
+        borderWidth: 2,
+        pointRadius: 0,
+        tension: 0.25,
+      },
+      {
+        label: "Live-Kurve (Stoppuhr)",
+        data: [],
+        parsing: false,
+        borderWidth: 2,
+        pointRadius: 0,
+        tension: 0.25,
+      },
+      {
+        label: "Live-Punkt",
+        data: [],
+        parsing: false,
+        borderWidth: 0,
+        pointRadius: 4,
+        showLine: false,
+      }
+    ]},
+    options: {
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{ display:true, labels:{ color:"rgba(233,238,247,.9)" } },
+        tooltip:{
+          callbacks:{
+            title:(items)=>{
+              const xVal = items?.[0]?.parsed?.x ?? 0;
+              return `Zeit: ${formatMin(xVal)}`;
+            },
+            label:(item)=>{
+              const y = item.parsed.y;
+              return `${item.dataset.label}: ${Math.round(y)}% • ${stageFromPercent(y)}`;
+            }
+          }
+        }
+      },
+      scales:{
+        x:{
+          type:'linear',
+          title:{ display:true, text:'Zeit', color:"rgba(233,238,247,.9)" },
+          ticks:{ color:"rgba(159,176,199,.9)", callback:(v)=>formatMin(v) },
+          grid:{ color:"rgba(255,255,255,.06)" },
+          min:0,
+          max:12
+        },
+        y:{
+          title:{ display:true, text:'Gargrad', color:"rgba(233,238,247,.9)" },
+          ticks:{
+            color:"rgba(159,176,199,.9)",
+            callback:(v)=>`${v}%`
+          },
+          grid:{ color:"rgba(255,255,255,.06)" },
+          min:0,
+          max:110
+        }
+      }
+    },
+    plugins: [stageRegionsPlugin]
+  });
+
+  function formatMin(min){
+    const totalSec = Math.max(0, min * 60);
+    const m = Math.floor(totalSec / 60);
+    const s = Math.floor(totalSec % 60);
+    return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }
+
+  function updateAll(stopwatchMin = null){
+    const { thresholds, weight, diameterMm, eggTempC, altM, method, bp } = computeThresholds();
+    const [t1,t2,t3,t4,t5] = thresholds;
+
+    // x max: show a bit beyond hard
+    const maxX = Math.max(12, t5 * 1.18);
+    chart.options.scales.x.max = maxX;
+
+    // headline
+    const diaTxt = Number.isFinite(diameterMm) ? `, Ø ${diameterMm.toFixed(1)} mm` : "";
+    const methodTxt = method === "coldstart" ? "Kaltstart" : "kochendes Wasser";
+    elHeadline.textContent =
+      `Ei ${weight.toFixed(1)} g${diaTxt} • Ei-Temp ${eggTempC}°C • Höhe ${altM} m • ${methodTxt} • Siedepunkt ${bp.toFixed(1)}°C`;
+
+    // Build Soll curve
+    const soll = buildCurveData(maxX, thresholds, 5);
+    chart.data.datasets[0].data = soll;
+
+    // Live curve = truncated soll curve up to stopwatch time
+    if (Number.isFinite(stopwatchMin)) {
+      const live = [];
+      for (const pt of soll){
+        if (pt.x <= stopwatchMin) live.push(pt);
+        else break;
+      }
+      const liveY = gargradAtTime(stopwatchMin, thresholds);
+      const livePoint = [{ x: stopwatchMin, y: Math.min(110, Math.max(0, liveY)) }];
+
+      chart.data.datasets[1].data = live;
+      chart.data.datasets[2].data = livePoint;
+
+      const p = Math.min(110, Math.max(0, liveY));
+      elStageNow.textContent = stageFromPercent(p);
+    } else {
+      chart.data.datasets[1].data = [];
+      chart.data.datasets[2].data = [];
+      elStageNow.textContent = "—";
+    }
+
+    // colors (explicit, so it's easy to read)
+    chart.data.datasets[0].borderColor = "rgba(77,163,255,0.95)";
+    chart.data.datasets[1].borderColor = "rgba(255,92,122,0.95)";
+    chart.data.datasets[2].pointBackgroundColor = "rgba(255,92,122,0.95)";
+
+    // tell plugin current thresholds for background regions
+    stageRegionsPlugin.beforeDatasetsDraw = stageRegionsPlugin.beforeDatasetsDraw.bind(stageRegionsPlugin, chart, null, { thresholds });
+
+    // Better: store thresholds on plugin options
+    chart.config.plugins = chart.config.plugins || [];
+    // Chart.js passes pluginOptions from chart.options.plugins[pluginId]
+    chart.options.plugins.stageRegions = { thresholds };
+
+    chart.update();
+  }
+
+  // ---------------------------
+  // Stopwatch
+  // ---------------------------
+  let running = false;
+  let startTs = 0;
+  let elapsedMs = 0;
+  let rafId = null;
+
+  function renderStopwatch(){
+    const ms = elapsedMs + (running ? (performance.now() - startTs) : 0);
+    const totalSec = ms / 1000;
+    const m = Math.floor(totalSec / 60);
+    const s = Math.floor(totalSec % 60);
+    const tenths = Math.floor((totalSec - Math.floor(totalSec)) * 10);
+    elSw.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${tenths}`;
+
+    updateAll(totalSec / 60);
+    rafId = requestAnimationFrame(renderStopwatch);
+  }
+
+  function start(){
+    if (running) return;
+    running = true;
+    startTs = performance.now();
+    btnStart.disabled = true;
+    btnPause.disabled = false;
+    rafId = requestAnimationFrame(renderStopwatch);
+  }
+  function pause(){
+    if (!running) return;
+    running = false;
+    elapsedMs += performance.now() - startTs;
+    btnStart.disabled = false;
+    btnPause.disabled = true;
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = null;
+    updateAll((elapsedMs/1000)/60);
+  }
+  function reset(){
+    running = false;
+    elapsedMs = 0;
+    btnStart.disabled = false;
+    btnPause.disabled = true;
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = null;
+    elSw.textContent = "00:00.0";
+    updateAll(null);
+  }
+
+  btnStart.addEventListener('click', start);
+  btnPause.addEventListener('click', pause);
+  btnReset.addEventListener('click', reset);
+
+  // ---------------------------
+  // Input events
+  // ---------------------------
+  function onInputsChanged(){
+    if (!running) updateAll(null);
+  }
+
+  elEggTempMode.addEventListener('change', ()=>{
+    elEggTempCustomWrap.style.display = (elEggTempMode.value === "custom") ? "block" : "none";
+    onInputsChanged();
+  });
+
+  elSize.addEventListener('change', ()=>{
+    const v = elSize.value;
+    if (v !== "custom" && SIZE_TO_WEIGHT[v]) elWeight.value = SIZE_TO_WEIGHT[v];
+    onInputsChanged();
+  });
+
+  [elWeight, elDiameter, elAltitude, elMethod, elEggTempCustom, elT1, elT2, elT3, elT4, elT5].forEach(el=>{
+    el.addEventListener('input', onInputsChanged);
+    el.addEventListener('change', onInputsChanged);
+  });
+
+  // init
+  elEggTempCustomWrap.style.display = "none";
+  updateAll(null);
+</script>
+</body>
+</html>

@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mischverhältnis-Rechner (1:10 / 1:50) – mit Balkenanzeige</title>
+  <style>
+    :root{
+      --bg:#0b0f17; --card:#121a27; --text:#e9eef7; --muted:#9fb0c7; --accent:#4da3ff;
+      --border: rgba(255,255,255,.10);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    .wrap{max-width:980px;margin:0 auto;padding:18px}
+    h1{font-size:1.5rem;margin:8px 0 6px}
+    .sub{color:var(--muted);margin:0 0 16px;line-height:1.35}
+    .grid{display:grid;grid-template-columns:360px 1fr;gap:14px;align-items:start}
+    @media (max-width: 900px){ .grid{grid-template-columns:1fr;} }
+    .card{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px}
+    label{display:block;font-size:.92rem;margin:10px 0 6px;color:var(--muted)}
+    input,select,button{font:inherit}
+    input[type="number"], select{
+      width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--border);
+      background:rgba(255,255,255,.04);color:var(--text)
+    }
+    input[type="range"]{width:100%}
+    .row{display:flex;gap:10px}
+    .row>*{flex:1}
+    .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--border);font-variant-numeric:tabular-nums}
+    .big{font-size:1.25rem;font-weight:800;margin:6px 0 2px}
+    .hint{color:var(--muted);margin:0;line-height:1.35}
+    .barWrap{margin-top:12px}
+    .bar{
+      height:18px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--border);
+      overflow:hidden;display:flex;
+    }
+    .segA{background:rgba(77,163,255,.85)}
+    .segB{background:rgba(57,217,138,.75)}
+    .legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .dot{width:10px;height:10px;border-radius:99px;display:inline-block;margin-right:6px}
+    .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    button{
+      padding:10px 12px;border-radius:12px;border:1px solid var(--border);
+      background:rgba(255,255,255,.06);color:var(--text);cursor:pointer
+    }
+    button.primary{border-color:rgba(77,163,255,.35);background:rgba(77,163,255,.16)}
+    .small{color:var(--muted);font-size:.92rem;line-height:1.35;margin-top:10px}
+    .mono{font-variant-numeric:tabular-nums}
+  </style>
+</head>
+
+<body>
+<div class="wrap">
+  <h1>Mischverhältnis-Rechner</h1>
+  <p class="sub">
+    Für Verdünnungen wie <b>1:10</b> oder <b>1:50</b>. Live-Update + Balkenanzeige.
+    Du kannst entweder die <b>Gesamtmenge</b> eingeben oder eine <b>Komponente</b> vorgeben.
+  </p>
+
+  <div class="grid">
+    <!-- Inputs -->
+    <div class="card">
+      <label for="mode">Modus</label>
+      <select id="mode">
+        <option value="total" selected>Ich kenne die Gesamtmenge</option>
+        <option value="concentrate">Ich kenne die Menge Konzentrat</option>
+        <option value="water">Ich kenne die Menge Wasser</option>
+      </select>
+
+      <label for="ratioPreset">Verhältnis</label>
+      <div class="row">
+        <select id="ratioPreset">
+          <option value="custom">Benutzerdefiniert</option>
+          <option value="1:10" selected>1:10</option>
+          <option value="1:20">1:20</option>
+          <option value="1:50">1:50</option>
+          <option value="1:100">1:100</option>
+        </select>
+        <select id="ratioMeaning">
+          <option value="partsTotal" selected>1 : X (Konzentrat : Gesamt)</option>
+          <option value="partsWater">1 : X (Konzentrat : Wasser)</option>
+        </select>
+      </div>
+
+      <div class="row">
+        <div>
+          <label for="a">Teil A – Konzentrat (Teile)</label>
+          <input id="a" type="number" min="0.1" step="0.1" value="1" />
+        </div>
+        <div>
+          <label for="b">Teil B – X (Teile)</label>
+          <input id="b" type="number" min="1" step="1" value="10" />
+        </div>
+      </div>
+
+      <label for="unit">Einheit</label>
+      <select id="unit">
+        <option value="ml" selected>ml</option>
+        <option value="l">Liter</option>
+        <option value="g">g</option>
+        <option value="kg">kg</option>
+      </select>
+
+      <label for="amount">Menge (je nach Modus)</label>
+      <input id="amount" type="number" min="0" step="0.1" value="1000" />
+
+      <div class="btns">
+        <button id="swap">↔️ Teile tauschen</button>
+        <button id="copy" class="primary">📋 Ergebnis kopieren</button>
+      </div>
+
+      <p class="small">
+        Beispiel: <b>1 : 10 (Konzentrat : Gesamt)</b> bedeutet:
+        Gesamt besteht aus 1 Teil Konzentrat + 9 Teile Wasser.
+      </p>
+    </div>
+
+    <!-- Output -->
+    <div class="card">
+      <div class="big" id="headline">—</div>
+      <p class="hint" id="detail">—</p>
+
+      <div class="barWrap">
+        <div class="bar" aria-label="Mischbalken">
+          <div id="barA" class="segA" style="width:10%"></div>
+          <div id="barB" class="segB" style="width:90%"></div>
+        </div>
+
+        <div class="legend">
+          <span class="pill"><span class="dot" style="background:rgba(77,163,255,.85)"></span>Konzentrat: <b class="mono" id="outA">—</b></span>
+          <span class="pill"><span class="dot" style="background:rgba(57,217,138,.75)"></span>Wasser/Träger: <b class="mono" id="outB">—</b></span>
+          <span class="pill">Gesamt: <b class="mono" id="outTotal">—</b></span>
+          <span class="pill">Mischung: <b class="mono" id="outRatio">—</b></span>
+        </div>
+      </div>
+
+      <p class="small" id="note"></p>
+    </div>
+  </div>
+</div>
+
+<script>
+  const elMode = document.getElementById('mode');
+  const elRatioPreset = document.getElementById('ratioPreset');
+  const elMeaning = document.getElementById('ratioMeaning');
+  const elA = document.getElementById('a');
+  const elB = document.getElementById('b');
+  const elUnit = document.getElementById('unit');
+  const elAmount = document.getElementById('amount');
+
+  const elHeadline = document.getElementById('headline');
+  const elDetail = document.getElementById('detail');
+
+  const elBarA = document.getElementById('barA');
+  const elBarB = document.getElementById('barB');
+  const elOutA = document.getElementById('outA');
+  const elOutB = document.getElementById('outB');
+  const elOutTotal = document.getElementById('outTotal');
+  const elOutRatio = document.getElementById('outRatio');
+  const elNote = document.getElementById('note');
+
+  const btnSwap = document.getElementById('swap');
+  const btnCopy = document.getElementById('copy');
+
+  function n(x, fallback=0){
+    const v = Number(x);
+    return Number.isFinite(v) ? v : fallback;
+  }
+
+  function fmt(v){
+    // Nice formatting, keep it compact
+    if (!Number.isFinite(v)) return "—";
+    const abs = Math.abs(v);
+    const digits = abs >= 100 ? 0 : abs >= 10 ? 1 : 2;
+    return v.toFixed(digits).replace(".", ",");
+  }
+
+  function unitLabel(u){
+    if (u === "l") return "l";
+    if (u === "ml") return "ml";
+    if (u === "g") return "g";
+    if (u === "kg") return "kg";
+    return u;
+  }
+
+  // Apply preset like "1:10" into a=1 b=10
+  function applyPreset(){
+    const v = elRatioPreset.value;
+    if (v === "custom") return;
+    const [p,q] = v.split(":").map(s => Number(s.trim()));
+    if (Number.isFinite(p) && Number.isFinite(q) && q > 0){
+      elA.value = String(p);
+      elB.value = String(q);
+    }
+  }
+
+  // Core solver:
+  // - ratioMeaning:
+  //   partsTotal => a : b means (concentrate parts) : (total parts)
+  //   partsWater => a : b means (concentrate parts) : (water parts)
+  //
+  // - mode:
+  //   total => amount = total
+  //   concentrate => amount = concentrate
+  //   water => amount = water
+  function solve({aParts, bParts, ratioMeaning, mode, amount}){
+    aParts = Math.max(0.000001, aParts);
+    bParts = Math.max(0.000001, bParts);
+    amount = Math.max(0, amount);
+
+    let conc=0, water=0, total=0;
+
+    if (ratioMeaning === "partsTotal"){
+      // a : b = conc : total
+      const concFrac = aParts / bParts;          // conc / total
+      const waterFrac = 1 - concFrac;            // water / total
+
+      if (mode === "total"){
+        total = amount;
+        conc = total * concFrac;
+        water = total * waterFrac;
+      } else if (mode === "concentrate"){
+        conc = amount;
+        total = conc / concFrac;
+        water = total - conc;
+      } else { // water
+        water = amount;
+        total = water / waterFrac;
+        conc = total - water;
+      }
+
+    } else {
+      // a : b = conc : water
+      const sumParts = aParts + bParts;
+      const concFrac = aParts / sumParts;        // conc / total
+      const waterFrac = bParts / sumParts;       // water / total
+
+      if (mode === "total"){
+        total = amount;
+        conc = total * concFrac;
+        water = total * waterFrac;
+      } else if (mode === "concentrate"){
+        conc = amount;
+        water = conc * (bParts / aParts);
+        total = conc + water;
+      } else { // water
+        water = amount;
+        conc = water * (aParts / bParts);
+        total = conc + water;
+      }
+    }
+
+    // clamp small floating errors
+    conc = Math.max(0, conc);
+    water = Math.max(0, water);
+    total = Math.max(0, total);
+
+    return { conc, water, total };
+  }
+
+  function update(){
+    // keep preset in sync if user selects it
+    applyPreset();
+
+    const aParts = n(elA.value, 1);
+    const bParts = n(elB.value, 10);
+    const ratioMeaning = elMeaning.value;
+    const mode = elMode.value;
+    const amount = n(elAmount.value, 0);
+    const unit = elUnit.value;
+
+    const { conc, water, total } = solve({aParts, bParts, ratioMeaning, mode, amount});
+
+    // Percent for bar
+    const fracA = total > 0 ? (conc / total) : 0;
+    const fracB = total > 0 ? (water / total) : 0;
+
+    elBarA.style.width = `${(fracA * 100).toFixed(2)}%`;
+    elBarB.style.width = `${(fracB * 100).toFixed(2)}%`;
+
+    const u = unitLabel(unit);
+
+    elOutA.textContent = `${fmt(conc)} ${u}`;
+    elOutB.textContent = `${fmt(water)} ${u}`;
+    elOutTotal.textContent = `${fmt(total)} ${u}`;
+
+    // ratio display: normalize to 1 : X for readability where possible
+    let ratioText = "";
+    if (ratioMeaning === "partsTotal"){
+      // conc:total
+      const x = bParts / aParts;
+      ratioText = `Konzentrat : Gesamt = 1 : ${fmt(x)}`;
+    } else {
+      const x = bParts / aParts;
+      ratioText = `Konzentrat : Wasser = 1 : ${fmt(x)}`;
+    }
+    elOutRatio.textContent = ratioText;
+
+    // Headline + detail (contextual)
+    const modeText =
+      mode === "total" ? `Gesamtmenge ${fmt(amount)} ${u}` :
+      mode === "concentrate" ? `Konzentrat ${fmt(amount)} ${u}` :
+      `Wasser ${fmt(amount)} ${u}`;
+
+    elHeadline.textContent = `Du brauchst: ${fmt(conc)} ${u} Konzentrat + ${fmt(water)} ${u} Wasser`;
+    elDetail.textContent = `Ausgehend von: ${modeText} • Verhältnis: ${aParts}:${bParts} (${ratioMeaning === "partsTotal" ? "Konzentrat:Gesamt" : "Konzentrat:Wasser"})`;
+
+    // Note to clarify 1:X meaning
+    if (ratioMeaning === "partsTotal"){
+      // e.g. 1:10 total => water is 9 parts
+      const waterParts = (bParts - aParts);
+      const ok = waterParts > 0;
+      elNote.textContent = ok
+        ? `Hinweis: Bei „Konzentrat : Gesamt“ ist Wasser = (Gesamt − Konzentrat). Das entspricht hier ${fmt(waterParts)} Teilen Wasser auf ${fmt(aParts)} Teil(e) Konzentrat.`
+        : `Achtung: Für „Konzentrat : Gesamt“ muss X (Gesamt-Teile) größer als Konzentrat-Teile sein (z. B. 1:10).`;
+    } else {
+      elNote.textContent = `Hinweis: Bei „Konzentrat : Wasser“ ist die Mischung direkt nach Teilen aufgeteilt. Hier: ${fmt(aParts)} Teil(e) Konzentrat auf ${fmt(bParts)} Teil(e) Wasser.`;
+    }
+  }
+
+  btnSwap.addEventListener('click', () => {
+    const a = elA.value; elA.value = elB.value; elB.value = a;
+    elRatioPreset.value = "custom";
+    update();
+  });
+
+  btnCopy.addEventListener('click', async () => {
+    update(); // ensure fresh
+    const text = `${elHeadline.textContent}\n${elDetail.textContent}\n${elOutRatio.textContent}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      btnCopy.textContent = "✅ Kopiert";
+      setTimeout(()=> btnCopy.textContent = "📋 Ergebnis kopieren", 1200);
+    } catch {
+      // fallback
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+      btnCopy.textContent = "✅ Kopiert";
+      setTimeout(()=> btnCopy.textContent = "📋 Ergebnis kopieren", 1200);
+    }
+  });
+
+  [elMode, elRatioPreset, elMeaning, elA, elB, elUnit, elAmount].forEach(el => {
+    el.addEventListener('input', () => {
+      if (el === elRatioPreset) {
+        // only apply preset when user changes preset dropdown; keep manual edits as custom
+        if (elRatioPreset.value !== "custom") applyPreset();
+      }
+      if (el === elA || el === elB) elRatioPreset.value = "custom";
+      update();
+    });
+    el.addEventListener('change', () => {
+      if (el === elA || el === elB) elRatioPreset.value = "custom";
+      update();
+    });
+  });
+
+  // init
+  update();
+</script>
+</body>
+</html>
