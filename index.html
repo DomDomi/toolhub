@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <title>Kostenlose Rechner & Mini-Tools – schnell, mobil, ohne Anmeldung</title>
+  <meta name="description" content="Kostenlose Mini-Tools: Ei-Kochzeit mit Kurve, Mischverhältnis-Rechner, Steak/Brot-Timer und Abo-Kosten-Rechner. Schnell, mobil, ohne Anmeldung." />
+
+  <!-- TODO: Sobald Domain da ist, DEINEDOMAIN.DE ersetzen -->
+  <link rel="canonical" href="https://DEINEDOMAIN.DE/" />
+
+  <meta property="og:title" content="Kostenlose Rechner & Mini-Tools" />
+  <meta property="og:description" content="Ei-Kochzeit, Mischverhältnis, Steak/Brot-Timer, Abo-Kosten – alles schnell, mobil, ohne Anmeldung." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://DEINEDOMAIN.DE/" />
+  <!-- Optional später: og:image -->
+  <!-- <meta property="og:image" content="https://DEINEDOMAIN.DE/assets/og/hub.png" /> -->
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <link rel="stylesheet" href="/assets/css/base.css" />
+
+  <style>
+    header{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap}
+    h1{margin:0;font-size:1.75rem}
+    .sub{margin:6px 0 0;color:var(--muted);line-height:1.45;max-width:76ch}
+
+    .topbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .pill{display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,.06);color:var(--muted);font-size:.92rem}
+
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:16px}
+    @media (max-width:900px){.grid{grid-template-columns:1fr}}
+
+    .tool{
+      display:block;
+      text-decoration:none;
+      color:inherit;
+      background:var(--card);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:18px;
+      padding:14px;
+      transition:transform .08s ease, border-color .08s ease;
+    }
+    .tool:hover{border-color:rgba(77,163,255,.35);transform:translateY(-1px)}
+
+    .tagrow{display:flex;gap:8px;flex-wrap:wrap}
+    .tag{display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,.06);color:var(--muted);font-size:.9rem}
+    .title{margin:10px 0 4px;font-size:1.18rem;font-weight:850;letter-spacing:.1px}
+    .desc{margin:0;color:var(--muted);line-height:1.4}
+
+    .sections{display:grid;grid-template-columns:1.25fr .75fr;gap:14px;margin-top:14px}
+    @media (max-width:980px){.sections{grid-template-columns:1fr}}
+
+    h2{margin:0 0 8px;font-size:1.1rem}
+    p{margin:0 0 10px;color:var(--muted);line-height:1.55}
+    ul{margin:0;color:var(--muted);line-height:1.55;padding-left:18px}
+    li{margin:4px 0}
+    .footer{margin-top:16px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08);color:var(--muted);font-size:.92rem;line-height:1.4}
+    .links{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+  </style>
+
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"CollectionPage",
+    "name":"Kostenlose Rechner & Mini-Tools",
+    "url":"https://DEINEDOMAIN.DE/",
+    "about":["Rechner","Mini-Tools","Kochen","Haushalt","Finanzen"],
+    "isPartOf":{"@type":"WebSite","name":"ToolHub","url":"https://DEINEDOMAIN.DE/"}
+  }
+  </script>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Kostenlose Rechner & Mini-Tools</h1>
+        <p class="sub">
+          Kleine Tools, die sofort helfen – ohne Anmeldung. Perfekt für Smartphone.
+          Wenn du ein Tool nützlich findest: speichern oder teilen.
+        </p>
+      </div>
+
+      <div class="topbar">
+        <span class="pill">⚡ schnell & leichtgewichtig</span>
+        <span class="pill">📱 mobile-first</span>
+        <span class="pill">🧠 visuell (Diagramme/Timer)</span>
+      </div>
+    </header>
+
+    <main class="grid" aria-label="Tool-Übersicht">
+      <a class="tool" href="/ei-rechner/">
+        <div class="tagrow">
+          <span class="tag">Kochen</span>
+          <span class="tag">Diagramm</span>
+          <span class="tag">Live-Timer</span>
+        </div>
+        <div class="title">Ei-Rechner: Kochzeit + Konsistenz-Kurve</div>
+        <p class="desc">
+          Weich bis hart – mit Kurve, Live-Stoppuhr und Faktoren (Größe, Starttemperatur, Höhe).
+        </p>
+      </a>
+
+      <a class="tool" href="/mischverhaeltnis/">
+        <div class="tagrow">
+          <span class="tag">Haushalt / DIY</span>
+          <span class="tag">Balken</span>
+          <span class="tag">1:10 / 1:50</span>
+        </div>
+        <div class="title">Mischverhältnis-Rechner (Verdünnung)</div>
+        <p class="desc">
+          Gesamtmenge oder Konzentrat/Wasser vorgeben – sofortige Berechnung + Balkenanzeige.
+        </p>
+      </a>
+
+      <a class="tool" href="/steakandbread-timer/">
+        <div class="tagrow">
+          <span class="tag">Kochen</span>
+          <span class="tag">Kerntemperatur</span>
+          <span class="tag">Wenden-Hinweis</span>
+        </div>
+        <div class="title">Steak & Brot: Timer + Temperatur-Kurve</div>
+        <p class="desc">
+          Ziel-Kerntemperaturen, Live-Timer, Messpunkte (Thermometer) – inkl. Hinweis zum Wenden.
+        </p>
+      </a>
+
+      <a class="tool" href="/abokosten-rechner/">
+        <div class="tagrow">
+          <span class="tag">Finanzen</span>
+          <span class="tag">Visual</span>
+          <span class="tag">Preiserhöhung</span>
+        </div>
+        <div class="title">Abo-Kosten-Rechner: Was kostet es wirklich?</div>
+        <p class="desc">
+          Monatspreis, Laufzeit, Preiserhöhung – als Visualisierung (Kosten-Wahrheit statt Bauchgefühl).
+        </p>
+      </a>
+    </main>
+
+    <section class="sections">
+      <div class="card">
+        <h2>So nutzt du den Hub</h2>
+        <p>
+          Wähle ein Tool aus und gib deine Werte ein – das Ergebnis aktualisiert sich live.
+          Viele Tools haben Diagramme oder Timer, damit du den Verlauf besser verstehst.
+        </p>
+        <h2>Warum Google das hier gut verstehen kann (SEO)</h2>
+        <ul>
+          <li>Jedes Tool hat eine eigene URL (kein SPA-Router).</li>
+          <li>Jede Tool-Seite sollte zusätzlich Text, Beispiele und FAQ enthalten (nicht nur “Rechner”).</li>
+          <li>Es gibt interne Links zwischen Tools (Themen-Cluster).</li>
+          <li>Sitemap + robots.txt sind vorhanden.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>Demnächst</h2>
+        <ul>
+          <li>OG-Bilder für bessere CTR beim Teilen</li>
+          <li>Mehr Beispiel-Rechnungen + FAQ je Tool</li>
+          <li>Optional: kleines Browser-Game als Bonus</li>
+        </ul>
+
+        <div class="footer">
+          <div><b>Hinweis:</b> Ergebnisse sind Näherungen. Für Sicherheit/Medizin/Lebensmittel gelten offizielle Empfehlungen.</div>
+          <div class="links">
+            <a href="/sitemap.xml">sitemap.xml</a>
+            <a href="/robots.txt">robots.txt</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>
