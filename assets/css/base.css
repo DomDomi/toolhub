@@ -17,3 +17,32 @@ a{color:var(--muted)}
   border-radius:16px;
   padding:14px;
 }
+.share{
+  margin-top:24px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  align-items:center;
+}
+
+.share-label{
+  color:var(--muted);
+  margin-right:6px;
+}
+
+.share-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:8px 12px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.06);
+  color:var(--text);
+  text-decoration:none;
+  font-size:.95rem;
+}
+
+.share-btn:hover{
+  border-color:var(--accent);
+}
