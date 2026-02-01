@@ -3,7 +3,12 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Ei-Rechner (stabil mobil): Soll-Kurve + Live-Kurve + Höhenfaktor</title>
+   <!-- SEO -->
+  <title>Ei-Kochzeit Rechner: weich, wachsweich, hart – mit Kurve & Timer</title>
+  <meta name="description" content="Ei-Kochzeit Rechner für S/M/L/XL: weich bis hart. Berücksichtigt Starttemperatur & zeigt den Garverlauf als Kurve – inkl. Live-Timer. Kostenlos & mobil." />
+
+  <!-- optional / vorhanden -->
+  <link rel="canonical" href="https://toolhub-5ko.pages.dev/ei-rechner/" />
   <style>
     :root{
       --bg:#0b0f17; --card:#121a27; --text:#e9eef7; --muted:#9fb0c7; --accent:#4da3ff;
@@ -42,6 +47,55 @@
     summary{cursor:pointer;color:var(--muted)}
     .mono{font-variant-numeric:tabular-nums}
   </style>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Wie lange muss ein Ei kochen, damit es weich oder hart ist?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Ein weiches Ei ist meist nach etwa 4–5 Minuten fertig, wachsweich nach 6–7 Minuten und ein hartes Ei nach etwa 9–11 Minuten. Größe, Starttemperatur und Kochmethode beeinflussen die Zeit."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Macht die Größe des Eis einen Unterschied bei der Kochzeit?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Ja. Größere Eier benötigen mehr Zeit als kleine Eier. Der Ei-Rechner berücksichtigt unterschiedliche Größen sowie Gewicht oder Durchmesser."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Soll man Eier kalt oder kochend ins Wasser legen?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Beides ist möglich. Der Rechner unterstützt sowohl das Aufkochen in kaltem Wasser als auch das Einlegen in kochendes Wasser."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Beeinflusst die Höhe über dem Meeresspiegel die Kochzeit?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Ja. In höheren Lagen kocht Wasser bei niedrigeren Temperaturen, wodurch Eier länger brauchen. Der Rechner berücksichtigt diesen Effekt."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Wie genau ist der Ei-Rechner?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Der Rechner liefert eine praxisnahe Näherung auf Basis von Modellen und Erfahrungswerten. Für absolute Genauigkeit ist ein Thermometer erforderlich."
+        }
+      }
+    ]
+  }
+  </script>
+
 </head>
 
 <body>
@@ -51,7 +105,35 @@
     Diagramm zeigt den <b>Gargrad über Zeit</b> (Soll) und eine <b>Live-Kurve</b> (Stoppuhr).
     Berücksichtigt werden Ei-Größe/Gewicht, optional Durchmesser, Ei-Temperatur, Startmethode (kochend/kaltstart) und Höhe über NN.
   </p>
+  <h2>Was berechnet der Ei-Rechner?</h2>
 
+  <p>
+  Die Kochzeit eines Eis hängt von mehreren Faktoren ab.
+  Größe, Temperatur und gewünschte Konsistenz beeinflussen,
+  wie schnell Eiweiß und Eigelb fest werden.
+  Dieser Rechner hilft dir, eine passende Kochzeit abzuschätzen
+  und zeigt dir zusätzlich, wann welche Garstufe erreicht wird.
+  </p>
+  <h2>So benutzt du den Ei-Rechner</h2>
+
+  <ol>
+    <li>Wähle die Größe deines Eis (z. B. M oder L).</li>
+    <li>Gib an, ob das Ei aus dem Kühlschrank oder bei Zimmertemperatur ist.</li>
+    <li>Starte die Stoppuhr, sobald das Wasser kocht.</li>
+    <li>Beobachte im Diagramm, wann dein Ei weich, wachsweich oder hart wird.</li>
+  </ol>
+  <h2>Beispiele für Kochzeiten</h2>
+
+  <ul>
+    <li><b>Weiches Ei (Größe M):</b> ca. 4–5 Minuten – Eiweiß fest, Eigelb flüssig.</li>
+    <li><b>Wachsweiches Ei (Größe M):</b> ca. 6–7 Minuten – Kern noch cremig.</li>
+    <li><b>Hartes Ei (Größe L):</b> ca. 9–10 Minuten – Eigelb komplett fest.</li>
+  </ul>
+
+  <p>
+  Die genauen Zeiten können leicht variieren.
+  Der Rechner hilft dir, ein besseres Gefühl für den richtigen Zeitpunkt zu bekommen.
+  </p>
   <div class="grid">
     <!-- Inputs -->
     <div class="card">
@@ -146,6 +228,88 @@
         Tipp: Wenn du den Timer erst ab „Wasser kocht“ startest, stell die Startmethode auf „kochendes Wasser“.
       </p>
     </div>
+     <!-- Weitere Rechner -->
+    <div class="moreCalc">
+      <div class="big" id="headline">—</div>
+      <h2>Weitere hilfreiche Rechner</h2>
+
+      <ul>
+        <li><a href="/steakandbread-timer/">Steak & Brot Timer – Kerntemperaturen</a></li>
+        <li><a href="/mischverhaeltnis/">Mischverhältnis-Rechner</a></li>
+        <li><a href="/abokosten-rechner/">Was kostet mich ein Abo wirklich?</a></li>
+      </ul>
+    </div> 
+    <div class="faq" id="faq">
+      <h2>Häufige Fragen zum Ei-Rechner</h2>
+
+      <div class="faq-item">
+        <h3 class="faq-q">Wie lange muss ein Ei kochen, damit es weich oder hart ist?</h3>
+        <div class="faq-a">
+          <p>
+            Das hängt von der gewünschten Konsistenz ab. Ein weiches Ei ist meist nach etwa
+            4–5 Minuten fertig, ein wachsweiches nach 6–7 Minuten und ein hartes Ei nach
+            etwa 9–11 Minuten. Größe, Starttemperatur und Kochmethode spielen dabei eine
+            wichtige Rolle.
+          </p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <h3 class="faq-q">Macht die Größe des Eis einen Unterschied bei der Kochzeit?</h3>
+        <div class="faq-a">
+          <p>
+            Ja. Größere Eier (z. B. L oder XL) benötigen mehr Zeit als kleine Eier.
+            Der Ei-Rechner berücksichtigt unterschiedliche Größen und kann auch mit
+            Gewicht oder Durchmesser arbeiten.
+          </p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <h3 class="faq-q">Soll man Eier kalt oder kochend ins Wasser legen?</h3>
+        <div class="faq-a">
+          <p>
+            Beides ist möglich. Viele legen Eier in kaltes Wasser und bringen es dann zum
+            Kochen, andere geben sie direkt in kochendes Wasser. Der Rechner berücksichtigt
+            beide Varianten sowie die Starttemperatur des Eis.
+          </p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <h3 class="faq-q">Beeinflusst die Höhe über dem Meeresspiegel die Kochzeit?</h3>
+        <div class="faq-a">
+          <p>
+            Ja. In höheren Lagen sinkt der Siedepunkt von Wasser, wodurch Eier länger
+            brauchen. Der Ei-Rechner passt die Zeiten entsprechend an, wenn du die Höhe
+            angibst.
+          </p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <h3 class="faq-q">Warum ist mein Ei trotz gleicher Zeit manchmal anders?</h3>
+        <div class="faq-a">
+          <p>
+            Kleine Unterschiede entstehen durch Eiergröße, Alter des Eis, Starttemperatur,
+            Topfgröße, Wassermenge und Hitzequelle. Der Rechner liefert eine realistische
+            Näherung, kann diese Faktoren aber nicht vollständig eliminieren.
+          </p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <h3 class="faq-q">Wie genau ist der Ei-Rechner?</h3>
+        <div class="faq-a">
+          <p>
+            Der Rechner basiert auf physikalischen Modellen und Erfahrungswerten und ist für
+            den Alltag sehr zuverlässig. Er ersetzt jedoch kein Küchenthermometer, wenn
+            absolute Genauigkeit erforderlich ist.
+          </p>
+        </div>
+      </div>
+    </div>
+   
   </div>
 </div>
 
@@ -591,5 +755,7 @@
   setChartData(null);
   chart.update('none');
 </script>
+
+
 </body>
 </html>
