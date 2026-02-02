@@ -221,6 +221,12 @@
         <b>Soll-Kurve</b> = erwarteter Gargrad • <b>Live-Kurve</b> = bis zur aktuellen Stoppuhr-Zeit • Farbbänder = Konsistenz-Zonen
       </p>
       <canvas id="chart"></canvas>
+      <div class="card" id="zoneInfoCard" style="margin-top:12px;">
+        <div class="big" id="zoneTitle">Garbereich</div>
+        <div class="hint" id="zoneText">Tippe im Diagramm auf einen farbigen Bereich, um Details zu sehen.</div>
+        <div class="small" id="zoneRange"></div>
+      </div>
+
       <p class="small">
         Tipp: Wenn du den Timer erst ab „Wasser kocht“ startest, stell die Startmethode auf „kochendes Wasser“.
       </p>
@@ -437,6 +443,53 @@ document.getElementById('copyLink')?.addEventListener('click', () => {
     if (p < 100) return "Fest / Halbhart";
     return "Hart";
   }
+
+  const STAGE_INFO = [
+    {
+      key: "Sehr weich",
+      title: "Sehr weich",
+      text: "Eiweiß ist fest, Eigelb komplett flüssig."
+    },
+    {
+      key: "Weich / Frühstücksei",
+      title: "Weich / Frühstücksei",
+      text: "Eiklar fest, Eigelb flüssig-cremig."
+    },
+    {
+      key: "Wachsweich / Kernweich",
+      title: "Wachsweich / Kernweich",
+      text: "Eigelb am Rand fest, in der Mitte noch flüssig/zähflüssig."
+    },
+    {
+      key: "Fest / Halbhart",
+      title: "Fest / Halbhart",
+      text: "Eigelb weitgehend gestockt, aber noch nicht trocken."
+    },
+    {
+      key: "Hart",
+      title: "Hart",
+      text: "Eigelb komplett fest und schnittfest."
+    }
+  ];
+
+  function stageIndexFromTime(min, thresholds){
+    const [t1,t2,t3,t4,t5] = thresholds;
+
+    // Vor "sehr weich": wir zeigen keinen Garbereich (optional)
+    if (min < t1) return -1;
+
+    if (min < t2) return 0; // sehr weich
+    if (min < t3) return 1; // weich
+    if (min < t4) return 2; // wachsweich
+    if (min < t5) return 3; // halbhart
+    return 4;               // hart
+  }
+
+  function fmtRange(a,b){
+    if (!Number.isFinite(b)) return `${formatMin(a)} – ∞`;
+    return `${formatMin(a)} – ${formatMin(b)}`;
+  }
+
 
   // ---------------------------
   // UI
@@ -694,6 +747,43 @@ function fmtRange(a, b){
     },
     plugins:[stageRegionsPlugin]
   });
+
+
+  const zoneTitle = document.getElementById("zoneTitle");
+  const zoneText  = document.getElementById("zoneText");
+  const zoneRange = document.getElementById("zoneRange");
+
+  chart.canvas.addEventListener("click", (evt) => {
+    const thresholds = chart.options?.plugins?.stageRegions?.thresholds;
+    if (!thresholds) return;
+
+    // X-Position -> Zeit (Minuten) auslesen
+    const rect = chart.canvas.getBoundingClientRect();
+    const xPixel = evt.clientX - rect.left;
+    const xScale = chart.scales.x;
+
+    const tMin = xScale.getValueForPixel(xPixel);
+
+    // Welche Zone?
+    const idx = stageIndexFromTime(tMin, thresholds);
+
+    if (idx < 0) {
+      zoneTitle.textContent = "Noch nicht";
+      zoneText.textContent = "Dieser Bereich liegt vor der ersten Garstufe (noch nicht 'sehr weich').";
+      zoneRange.textContent = `Zeit: 00:00 – ${formatMin(thresholds[0])}`;
+      return;
+    }
+
+    const info = STAGE_INFO[idx];
+    const edges = [thresholds[0],thresholds[1],thresholds[2],thresholds[3],thresholds[4], Infinity];
+    const from = idx === 0 ? thresholds[0] : edges[idx];
+    const to   = edges[idx+1];
+
+    zoneTitle.textContent = info.title;
+    zoneText.textContent  = info.text;
+    zoneRange.textContent = `Bereich: ${fmtRange(from, to)} (geklickt bei ${formatMin(tMin)})`;
+  });
+
 
   // Build + update datasets without forcing chart.update inside
   function setChartData(stopwatchMin){
