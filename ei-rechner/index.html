@@ -225,139 +225,142 @@
         Tipp: Wenn du den Timer erst ab „Wasser kocht“ startest, stell die Startmethode auf „kochendes Wasser“.
       </p>
     </div>
-     <!-- Weitere Rechner -->
-    <div class="moreCalc">
-      <div class="big" id="headline">—</div>
-      <h2>Weitere hilfreiche Rechner</h2>
+  </div>
+  <!-- Share -->
+  <div class="share-icons" aria-label="Tool teilen">
+    <!-- WhatsApp -->
+    <a class="share-icon wa"
+      href="https://wa.me/?text=https://toolhub.pages.dev/ei-rechner/"
+      target="_blank" rel="noopener"
+      aria-label="Auf WhatsApp teilen">
+      <!-- WhatsApp SVG -->
+      <svg viewBox="0 0 32 32" aria-hidden="true">
+        <path d="M19.11 17.21c-.27-.14-1.6-.79-1.85-.88-.25-.09-.43-.14-.61.14-.18.27-.7.88-.86 1.06-.16.18-.32.2-.59.07-.27-.14-1.15-.42-2.19-1.34-.81-.72-1.36-1.61-1.52-1.88-.16-.27-.02-.42.12-.56.12-.12.27-.32.41-.48.14-.16.18-.27.27-.45.09-.18.05-.34-.02-.48-.07-.14-.61-1.48-.84-2.03-.22-.53-.45-.46-.61-.46h-.52c-.18 0-.48.07-.73.34-.25.27-.96.93-.96 2.27 0 1.34.98 2.63 1.11 2.81.14.18 1.93 2.95 4.67 4.13.65.28 1.15.45 1.54.58.65.21 1.25.18 1.72.11.52-.08 1.6-.65 1.82-1.27.22-.62.22-1.16.16-1.27-.07-.11-.25-.18-.52-.32zM16 3C8.82 3 3 8.82 3 16c0 2.53.75 4.9 2.03 6.89L3 29l6.3-2.03A12.93 12.93 0 0 0 16 29c7.18 0 13-5.82 13-13S23.18 3 16 3z"/>
+      </svg>
+    </a>
 
-      <ul>
-        <li><a href="/steakandbread-timer/">Steak & Brot Timer – Kerntemperaturen</a></li>
-        <li><a href="/mischverhaeltnis/">Mischverhältnis-Rechner</a></li>
-        <li><a href="/abokosten-rechner/">Was kostet mich ein Abo wirklich?</a></li>
-      </ul>
-    </div> 
-    <div class="faq" id="faq">
-      <h2>Häufige Fragen zum Ei-Rechner</h2>
+    <!-- Telegram -->
+    <a class="share-icon tg"
+      href="https://t.me/share/url?url=https://toolhub.pages.dev/ei-rechner/"
+      target="_blank" rel="noopener"
+      aria-label="Auf Telegram teilen">
+      <svg viewBox="0 0 32 32" aria-hidden="true">
+        <path d="M29.91 6.13 24.9 26.2c-.38 1.42-1.38 1.77-2.8 1.1l-7.75-5.7-3.74 3.6c-.41.41-.76.76-1.55.76l.55-7.85L24 8.98c.6-.53-.13-.83-.93-.3L6.3 19.24l-7.25-2.26c-1.58-.49-1.61-1.58.33-2.34L27.7 3.6c1.33-.49 2.49.3 2.21 2.53z"/>
+      </svg>
+    </a>
 
-      <div class="faq-item">
-        <h3 class="faq-q">Wie lange muss ein Ei kochen, damit es weich oder hart ist?</h3>
-        <div class="faq-a">
-          <p>
-            Das hängt von der gewünschten Konsistenz ab. Ein weiches Ei ist meist nach etwa
-            4–5 Minuten fertig, ein wachsweiches nach 6–7 Minuten und ein hartes Ei nach
-            etwa 9–11 Minuten. Größe, Starttemperatur und Kochmethode spielen dabei eine
-            wichtige Rolle.
-          </p>
-        </div>
-      </div>
+    <!-- X / Twitter -->
+    <a class="share-icon x"
+      href="https://twitter.com/intent/tweet?url=https://toolhub.pages.dev/ei-rechner/"
+      target="_blank" rel="noopener"
+      aria-label="Auf X teilen">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M18.9 2H22l-6.8 7.8L23 22h-6.3l-4.9-6.4L6.1 22H3l7.3-8.4L1 2h6.5l4.4 5.8L18.9 2z"/>
+      </svg>
+    </a>
 
-      <div class="faq-item">
-        <h3 class="faq-q">Macht die Größe des Eis einen Unterschied bei der Kochzeit?</h3>
-        <div class="faq-a">
-          <p>
-            Ja. Größere Eier (z. B. L oder XL) benötigen mehr Zeit als kleine Eier.
-            Der Ei-Rechner berücksichtigt unterschiedliche Größen und kann auch mit
-            Gewicht oder Durchmesser arbeiten.
-          </p>
-        </div>
-      </div>
+    <!-- E-Mail -->
+    <a class="share-icon mail"
+      href="mailto:?subject=Ei-Rechner&body=https://toolhub.pages.dev/ei-rechner/"
+      aria-label="Per E-Mail teilen">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M2 4h20v16H2zM20 6l-8 5-8-5"/>
+      </svg>
+    </a>
 
-      <div class="faq-item">
-        <h3 class="faq-q">Soll man Eier kalt oder kochend ins Wasser legen?</h3>
-        <div class="faq-a">
-          <p>
-            Beides ist möglich. Viele legen Eier in kaltes Wasser und bringen es dann zum
-            Kochen, andere geben sie direkt in kochendes Wasser. Der Rechner berücksichtigt
-            beide Varianten sowie die Starttemperatur des Eis.
-          </p>
-        </div>
-      </div>
+    <!-- Copy -->
+    <button class="share-icon copy" id="copyLink" aria-label="Link kopieren">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v16h13a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z"/>
+      </svg>
+    </button>
+  </div>  
+  <!-- FAQ -->
+  <div class="faq" id="faq">
+    <h2>Häufige Fragen zum Ei-Rechner</h2>
 
-      <div class="faq-item">
-        <h3 class="faq-q">Beeinflusst die Höhe über dem Meeresspiegel die Kochzeit?</h3>
-        <div class="faq-a">
-          <p>
-            Ja. In höheren Lagen sinkt der Siedepunkt von Wasser, wodurch Eier länger
-            brauchen. Der Ei-Rechner passt die Zeiten entsprechend an, wenn du die Höhe
-            angibst.
-          </p>
-        </div>
-      </div>
-
-      <div class="faq-item">
-        <h3 class="faq-q">Warum ist mein Ei trotz gleicher Zeit manchmal anders?</h3>
-        <div class="faq-a">
-          <p>
-            Kleine Unterschiede entstehen durch Eiergröße, Alter des Eis, Starttemperatur,
-            Topfgröße, Wassermenge und Hitzequelle. Der Rechner liefert eine realistische
-            Näherung, kann diese Faktoren aber nicht vollständig eliminieren.
-          </p>
-        </div>
-      </div>
-
-      <div class="faq-item">
-        <h3 class="faq-q">Wie genau ist der Ei-Rechner?</h3>
-        <div class="faq-a">
-          <p>
-            Der Rechner basiert auf physikalischen Modellen und Erfahrungswerten und ist für
-            den Alltag sehr zuverlässig. Er ersetzt jedoch kein Küchenthermometer, wenn
-            absolute Genauigkeit erforderlich ist.
-          </p>
-        </div>
+    <div class="faq-item">
+      <h3 class="faq-q">Wie lange muss ein Ei kochen, damit es weich oder hart ist?</h3>
+      <div class="faq-a">
+        <p>
+          Das hängt von der gewünschten Konsistenz ab. Ein weiches Ei ist meist nach etwa
+          4–5 Minuten fertig, ein wachsweiches nach 6–7 Minuten und ein hartes Ei nach
+          etwa 9–11 Minuten. Größe, Starttemperatur und Kochmethode spielen dabei eine
+          wichtige Rolle.
+        </p>
       </div>
     </div>
-    <div class="share-icons" aria-label="Tool teilen">
-      <!-- WhatsApp -->
-      <a class="share-icon wa"
-        href="https://wa.me/?text=https://toolhub.pages.dev/ei-rechner/"
-        target="_blank" rel="noopener"
-        aria-label="Auf WhatsApp teilen">
-        <!-- WhatsApp SVG -->
-        <svg viewBox="0 0 32 32" aria-hidden="true">
-          <path d="M19.11 17.21c-.27-.14-1.6-.79-1.85-.88-.25-.09-.43-.14-.61.14-.18.27-.7.88-.86 1.06-.16.18-.32.2-.59.07-.27-.14-1.15-.42-2.19-1.34-.81-.72-1.36-1.61-1.52-1.88-.16-.27-.02-.42.12-.56.12-.12.27-.32.41-.48.14-.16.18-.27.27-.45.09-.18.05-.34-.02-.48-.07-.14-.61-1.48-.84-2.03-.22-.53-.45-.46-.61-.46h-.52c-.18 0-.48.07-.73.34-.25.27-.96.93-.96 2.27 0 1.34.98 2.63 1.11 2.81.14.18 1.93 2.95 4.67 4.13.65.28 1.15.45 1.54.58.65.21 1.25.18 1.72.11.52-.08 1.6-.65 1.82-1.27.22-.62.22-1.16.16-1.27-.07-.11-.25-.18-.52-.32zM16 3C8.82 3 3 8.82 3 16c0 2.53.75 4.9 2.03 6.89L3 29l6.3-2.03A12.93 12.93 0 0 0 16 29c7.18 0 13-5.82 13-13S23.18 3 16 3z"/>
-        </svg>
-      </a>
 
-      <!-- Telegram -->
-      <a class="share-icon tg"
-        href="https://t.me/share/url?url=https://toolhub.pages.dev/ei-rechner/"
-        target="_blank" rel="noopener"
-        aria-label="Auf Telegram teilen">
-        <svg viewBox="0 0 32 32" aria-hidden="true">
-          <path d="M29.91 6.13 24.9 26.2c-.38 1.42-1.38 1.77-2.8 1.1l-7.75-5.7-3.74 3.6c-.41.41-.76.76-1.55.76l.55-7.85L24 8.98c.6-.53-.13-.83-.93-.3L6.3 19.24l-7.25-2.26c-1.58-.49-1.61-1.58.33-2.34L27.7 3.6c1.33-.49 2.49.3 2.21 2.53z"/>
-        </svg>
-      </a>
-
-      <!-- X / Twitter -->
-      <a class="share-icon x"
-        href="https://twitter.com/intent/tweet?url=https://toolhub.pages.dev/ei-rechner/"
-        target="_blank" rel="noopener"
-        aria-label="Auf X teilen">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M18.9 2H22l-6.8 7.8L23 22h-6.3l-4.9-6.4L6.1 22H3l7.3-8.4L1 2h6.5l4.4 5.8L18.9 2z"/>
-        </svg>
-      </a>
-
-      <!-- E-Mail -->
-      <a class="share-icon mail"
-        href="mailto:?subject=Ei-Rechner&body=https://toolhub.pages.dev/ei-rechner/"
-        aria-label="Per E-Mail teilen">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M2 4h20v16H2zM20 6l-8 5-8-5"/>
-        </svg>
-      </a>
-
-      <!-- Copy -->
-      <button class="share-icon copy" id="copyLink" aria-label="Link kopieren">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v16h13a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z"/>
-        </svg>
-      </button>
+    <div class="faq-item">
+      <h3 class="faq-q">Macht die Größe des Eis einen Unterschied bei der Kochzeit?</h3>
+      <div class="faq-a">
+        <p>
+          Ja. Größere Eier (z. B. L oder XL) benötigen mehr Zeit als kleine Eier.
+          Der Ei-Rechner berücksichtigt unterschiedliche Größen und kann auch mit
+          Gewicht oder Durchmesser arbeiten.
+        </p>
+      </div>
     </div>
+
+    <div class="faq-item">
+      <h3 class="faq-q">Soll man Eier kalt oder kochend ins Wasser legen?</h3>
+      <div class="faq-a">
+        <p>
+          Beides ist möglich. Viele legen Eier in kaltes Wasser und bringen es dann zum
+          Kochen, andere geben sie direkt in kochendes Wasser. Der Rechner berücksichtigt
+          beide Varianten sowie die Starttemperatur des Eis.
+        </p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <h3 class="faq-q">Beeinflusst die Höhe über dem Meeresspiegel die Kochzeit?</h3>
+      <div class="faq-a">
+        <p>
+          Ja. In höheren Lagen sinkt der Siedepunkt von Wasser, wodurch Eier länger
+          brauchen. Der Ei-Rechner passt die Zeiten entsprechend an, wenn du die Höhe
+          angibst.
+        </p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <h3 class="faq-q">Warum ist mein Ei trotz gleicher Zeit manchmal anders?</h3>
+      <div class="faq-a">
+        <p>
+          Kleine Unterschiede entstehen durch Eiergröße, Alter des Eis, Starttemperatur,
+          Topfgröße, Wassermenge und Hitzequelle. Der Rechner liefert eine realistische
+          Näherung, kann diese Faktoren aber nicht vollständig eliminieren.
+        </p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <h3 class="faq-q">Wie genau ist der Ei-Rechner?</h3>
+      <div class="faq-a">
+        <p>
+          Der Rechner basiert auf physikalischen Modellen und Erfahrungswerten und ist für
+          den Alltag sehr zuverlässig. Er ersetzt jedoch kein Küchenthermometer, wenn
+          absolute Genauigkeit erforderlich ist.
+        </p>
+      </div>
+    </div>
+  </div>
+  <!-- Weitere Rechner -->
+  <div class="moreCalc">
+    <div class="big" id="headline">—</div>
+    <h2>Weitere hilfreiche Rechner</h2>
+
+    <ul>
+      <li><a href="/steakandbread-timer/">Steak & Brot Timer – Kerntemperaturen</a></li>
+      <li><a href="/mischverhaeltnis/">Mischverhältnis-Rechner</a></li>
+      <li><a href="/abokosten-rechner/">Was kostet mich ein Abo wirklich?</a></li>
+    </ul>
+  </div> 
 
 
    
-  </div>
+  
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
