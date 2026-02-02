@@ -556,6 +556,22 @@ document.getElementById('copyLink')?.addEventListener('click', () => {
     return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
   }
 
+  function stageFromTime(min, thresholds){
+  const [t1,t2,t3,t4,t5] = thresholds;
+  if (min < t1) return { name: "Noch nicht (zu roh)", from: 0, to: t1 };
+  if (min < t2) return { name: "Sehr weich", from: t1, to: t2 };
+  if (min < t3) return { name: "Weich / Frühstücksei", from: t2, to: t3 };
+  if (min < t4) return { name: "Wachsweich / Kernweich", from: t3, to: t4 };
+  if (min < t5) return { name: "Fest / Halbhart", from: t4, to: t5 };
+  return { name: "Hart", from: t5, to: Infinity };
+}
+
+function fmtRange(a, b){
+  if (!Number.isFinite(b)) return `${formatMin(a)} – ∞`;
+  return `${formatMin(a)} – ${formatMin(b)}`;
+}
+
+
   // ---------------------------
   // Stable plugin: stage regions (no dynamic bind)
   // Regions: [t1..t2], [t2..t3], [t3..t4], [t4..t5], [t5..xMax]
@@ -643,6 +659,16 @@ document.getElementById('copyLink')?.addEventListener('click', () => {
             label:(item)=>{
               const y = item.parsed.y;
               return `${item.dataset.label}: ${Math.round(y)}% • ${stageFromPercent(y)}`;
+            },
+            afterBody:(items)=>{
+              const xVal = items?.[0]?.parsed?.x ?? 0;
+              const thresholds = chart.options?.plugins?.stageRegions?.thresholds;
+              if (!thresholds) return [];
+              const s = stageFromTime(xVal, thresholds);
+              return [
+                `Zone: ${s.name}`,
+                `Bereich: ${fmtRange(s.from, s.to)}`
+              ];
             }
           }
         },
