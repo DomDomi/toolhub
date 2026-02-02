@@ -103,7 +103,7 @@
 <div class="wrap">
   <h1>Ei-Rechner</h1>
   <p class="sub">
-    Dein perfektes Frühstücksei
+    Ei-Kochzeit Rechner mit Konsistenz-Kurve & Live-Timer
   </p>
   <h2>Was berechnet der Ei-Rechner?</h2>
 
@@ -526,7 +526,7 @@ document.getElementById('copyLink')?.addEventListener('click', () => {
       {t:t5, p:100},
     ];
     if (min <= 0) return 0;
-    if (min >= t5) return 110;
+    if (min >= t5) return 100;
 
     for (let i=0; i<pts.length-1; i++){
       const a = pts[i], b = pts[i+1];
@@ -662,7 +662,7 @@ document.getElementById('copyLink')?.addEventListener('click', () => {
           ticks:{ color:"rgba(159,176,199,.9)", callback:(v)=>`${v}%` },
           grid:{ color:"rgba(255,255,255,.06)" },
           min:0,
-          max:110
+          max:100
         }
       }
     },
