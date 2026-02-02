@@ -656,6 +656,30 @@ function fmtRange(a, b){
         const right = x.getPixelForValue(edges[i+1]);
         ctx.fillStyle = colors[i];
         ctx.fillRect(left, chartArea.top, right-left, chartArea.bottom - chartArea.top);
+
+        const activeIndex = chart.options?.plugins?.stageRegions?.activeIndex;
+        if (Number.isInteger(activeIndex) && activeIndex >= 0 && i === activeIndex) {
+          ctx.save();
+
+          // kräftiges Pink, passend zum Live-Punkt
+          ctx.strokeStyle = "rgba(255, 92, 122, 0.95)";
+          ctx.lineWidth = 2;
+
+          //Mobil Besser sichtbar
+          ctx.shadowColor = "rgba(255,92,122,0.6)";
+          ctx.shadowBlur = 6;
+
+          // Rahmen minimal insetten, damit er nicht "klebt"
+          ctx.strokeRect(
+            left + 1,
+            chartArea.top + 1,
+            (right - left) - 2,
+            (chartArea.bottom - chartArea.top) - 2
+          );
+
+          ctx.restore();
+        }
+
       }
       ctx.restore();
     }
@@ -793,6 +817,10 @@ function fmtRange(a, b){
     const maxX = Math.max(12, t5 * 1.18);
     chart.options.scales.x.max = maxX;
     chart.options.plugins.stageRegions.thresholds = thresholds; // for plugin
+    chart.options.plugins.stageRegions.activeIndex =
+    Number.isFinite(stopwatchMin)
+      ? stageIndexFromTime(stopwatchMin, thresholds)
+      : null;
 
     const diaTxt = Number.isFinite(diameterMm) ? `, Ø ${diameterMm.toFixed(1)} mm` : "";
     const methodTxt = method === "coldstart" ? "Kaltstart" : "kochendes Wasser";
